@@ -9,7 +9,13 @@ export default defineConfig({
   server: {
     host: true,
     open: !('SANDBOX_URL' in process.env || 'CODESANDBOX_HOST' in process.env),
-    port: 3000
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
+    }
   },
   build: {
     outDir: 'dist',
