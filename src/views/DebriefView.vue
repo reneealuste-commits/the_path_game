@@ -471,6 +471,13 @@ onUnmounted(() => {
   border-color: #44ff44;
 }
 
+.mic-button.submitting {
+  background: #666;
+  border-color: #666;
+  cursor: not-allowed;
+  animation: none;
+}
+
 .mic-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
