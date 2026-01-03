@@ -27,26 +27,105 @@
     </div>
 
     <div class="container">
-      <!-- Quest Unlocked Banner -->
-      <div class="unlock-banner">
-        <h2 class="unlock-title">Quest {{ gameStore.currentWeek }} / 15</h2>
-        <div class="quest-day">{{ gameStore.currentQuest.phase }}</div>
+      <!-- Quest Navigator -->
+      <div class="quest-navigator">
+        <button
+          @click="toggleQuestMenu"
+          class="quest-selector"
+          :class="{ active: showQuestMenu }"
+        >
+          <span class="selector-phase">Phase {{ gameStore.currentQuest?.phase || 1 }}</span>
+          <span class="selector-title">{{ gameStore.currentQuest?.title }}</span>
+          <span class="selector-arrow">{{ showQuestMenu ? '▲' : '▼' }}</span>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div v-if="showQuestMenu" class="quest-menu">
+          <div class="menu-header">
+            <h3>Quest Navigator</h3>
+            <p class="menu-subtitle">{{ gameStore.currentWeek - 1 }} of 100 completed</p>
+          </div>
+
+          <div class="phases-list">
+            <div
+              v-for="phase in gameStore.allPhases"
+              :key="phase.id"
+              class="phase-group"
+            >
+              <div
+                class="phase-header"
+                :class="{
+                  current: isCurrentPhase(phase.id),
+                  completed: isPhaseCompleted(phase.id),
+                  locked: isPhaseLocked(phase.id)
+                }"
+                @click="togglePhase(phase.id)"
+              >
+                <span class="phase-indicator">
+                  <span v-if="isPhaseCompleted(phase.id)" class="check-icon">✓</span>
+                  <span v-else-if="isPhaseLocked(phase.id)" class="lock-icon">🔒</span>
+                  <span v-else class="phase-number">{{ phase.id }}</span>
+                </span>
+                <div class="phase-info">
+                  <span class="phase-name">{{ phase.name }}</span>
+                  <span class="phase-subtitle">{{ phase.subtitle }}</span>
+                </div>
+                <span class="phase-expand">{{ expandedPhases.includes(phase.id) ? '−' : '+' }}</span>
+              </div>
+
+              <div v-if="expandedPhases.includes(phase.id)" class="quests-list">
+                <button
+                  v-for="quest in getQuestsForPhase(phase.id)"
+                  :key="quest.id"
+                  class="quest-item"
+                  :class="{
+                    current: quest.id === gameStore.currentWeek,
+                    completed: quest.id < gameStore.currentWeek,
+                    locked: quest.id > gameStore.currentWeek
+                  }"
+                  @click="selectQuest(quest)"
+                  :disabled="quest.id > gameStore.currentWeek"
+                >
+                  <span class="quest-status">
+                    <span v-if="quest.id < gameStore.currentWeek" class="status-complete">✓</span>
+                    <span v-else-if="quest.id === gameStore.currentWeek" class="status-current">●</span>
+                    <span v-else class="status-locked">○</span>
+                  </span>
+                  <span class="quest-name">{{ quest.title }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Overview -->
+      <div class="progress-overview">
+        <div class="progress-bar-container">
+          <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
+        </div>
+        <div class="progress-text">
+          <span class="progress-current">Quest {{ gameStore.currentWeek }}</span>
+          <span class="progress-total">/ 100</span>
+        </div>
       </div>
 
       <!-- Quest Content -->
       <div class="quest-content">
-        <div class="phase-badge">{{ gameStore.currentQuest.phase }}</div>
-        <h1 class="quest-title">{{ gameStore.currentQuest.title }}</h1>
+        <div class="phase-badge">
+          PHASE {{ gameStore.currentQuest?.phase }} • {{ gameStore.currentQuest?.phaseName }}
+        </div>
+        <h1 class="quest-title">{{ gameStore.currentQuest?.title }}</h1>
 
         <!-- Lesson Content -->
         <div class="lesson-section">
           <div class="lesson-text-content">
-            <p>{{ gameStore.currentQuest.description }}</p>
+            <p>{{ gameStore.currentQuest?.description }}</p>
           </div>
         </div>
 
         <!-- Watch Jocko Video -->
-        <div class="video-option">
+        <div class="video-option" v-if="gameStore.currentQuest?.videoUrl">
           <a
             :href="gameStore.currentQuest.videoUrl"
             target="_blank"
@@ -54,31 +133,40 @@
           >
             📺 WATCH JOCKO'S LESSON
           </a>
-          <p class="video-note">Watch Jocko explain detachment on YouTube</p>
+          <p class="video-note">Watch Jocko explain this principle on YouTube</p>
         </div>
 
         <!-- Mission Brief -->
         <div class="mission-section">
           <h3 class="mission-title">YOUR MISSION</h3>
           <div class="mission-card">
-            <p>{{ gameStore.currentQuest.mission }}</p>
+            <p>{{ gameStore.currentQuest?.mission }}</p>
           </div>
 
           <button
             @click="goToDebrief"
             class="btn btn-primary btn-large"
-            :disabled="gameStore.hasCompletedCurrent || gameStore.allQuestsComplete"
+            :disabled="gameStore.hasCompletedCurrent || gameStore.allQuestsComplete || isViewingCompleted"
           >
-            <span v-if="!gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete">🎯 BEGIN MISSION</span>
+            <span v-if="isViewingCompleted">👁 VIEWING COMPLETED QUEST</span>
+            <span v-else-if="!gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete">🎯 BEGIN MISSION</span>
             <span v-else-if="gameStore.allQuestsComplete">✓ ALL QUESTS COMPLETE</span>
             <span v-else>✓ QUEST COMPLETE</span>
           </button>
 
-          <p v-if="gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete" class="completed-message">
+          <button
+            v-if="isViewingCompleted"
+            @click="returnToCurrent"
+            class="btn btn-secondary btn-return"
+          >
+            ← Return to Current Quest
+          </button>
+
+          <p v-if="gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete && !isViewingCompleted" class="completed-message">
             Quest completed! Continue to next quest.
           </p>
           <p v-if="gameStore.allQuestsComplete" class="completed-message">
-            Congratulations! You've completed Phase 1: The Foundation
+            Congratulations! You've mastered all 100 Leadership Quests!
           </p>
         </div>
       </div>
@@ -87,7 +175,7 @@
       <div class="progress-footer">
         <div class="stat">
           <span class="stat-label">Quest</span>
-          <span class="stat-value">{{ gameStore.currentWeek }}/15</span>
+          <span class="stat-value">{{ Math.min(gameStore.currentWeek, 100) }}/100</span>
         </div>
         <div class="stat">
           <span class="stat-label">Medals</span>
@@ -103,19 +191,88 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
 import { useAuthStore } from '../stores/auth'
+import { getQuestsByPhase } from '../data/quests'
 
 const router = useRouter()
 const gameStore = useGameStore()
 const authStore = useAuthStore()
 
+const showQuestMenu = ref(false)
+const expandedPhases = ref([])
+const viewingQuestId = ref(null)
+
 const userInitials = computed(() => {
   const name = gameStore.profile.name || ''
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
 })
+
+const progressPercent = computed(() => {
+  return Math.min(((gameStore.currentWeek - 1) / 100) * 100, 100)
+})
+
+const isViewingCompleted = computed(() => {
+  return viewingQuestId.value !== null && viewingQuestId.value !== gameStore.currentWeek
+})
+
+const isCurrentPhase = (phaseId) => {
+  return gameStore.currentQuest?.phase === phaseId
+}
+
+const isPhaseCompleted = (phaseId) => {
+  const phaseQuests = getQuestsByPhase(phaseId)
+  const lastQuest = phaseQuests[phaseQuests.length - 1]
+  return gameStore.currentWeek > lastQuest.id
+}
+
+const isPhaseLocked = (phaseId) => {
+  const phaseQuests = getQuestsByPhase(phaseId)
+  const firstQuest = phaseQuests[0]
+  return gameStore.currentWeek < firstQuest.id
+}
+
+const getQuestsForPhase = (phaseId) => {
+  return getQuestsByPhase(phaseId)
+}
+
+const toggleQuestMenu = () => {
+  showQuestMenu.value = !showQuestMenu.value
+  if (showQuestMenu.value && gameStore.currentQuest) {
+    // Auto-expand current phase
+    if (!expandedPhases.value.includes(gameStore.currentQuest.phase)) {
+      expandedPhases.value.push(gameStore.currentQuest.phase)
+    }
+  }
+}
+
+const togglePhase = (phaseId) => {
+  if (expandedPhases.value.includes(phaseId)) {
+    expandedPhases.value = expandedPhases.value.filter(id => id !== phaseId)
+  } else {
+    expandedPhases.value.push(phaseId)
+  }
+}
+
+const selectQuest = (quest) => {
+  if (quest.id <= gameStore.currentWeek) {
+    if (quest.id === gameStore.currentWeek) {
+      viewingQuestId.value = null
+    } else {
+      viewingQuestId.value = quest.id
+      gameStore.goToQuest(quest.id)
+    }
+    showQuestMenu.value = false
+  }
+}
+
+const returnToCurrent = () => {
+  viewingQuestId.value = null
+  // Reset to actual current quest
+  gameStore.goToQuest(gameStore.currentWeek)
+}
 
 const goToDebrief = () => {
   router.push('/debrief')
@@ -141,12 +298,12 @@ onMounted(() => {
 <style scoped>
 .quest-view {
   min-height: 100vh;
-  background: #000000;
+  background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
   padding-bottom: 80px;
 }
 
 .header {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 16px 20px;
@@ -258,27 +415,287 @@ onMounted(() => {
   padding: 20px;
 }
 
-.unlock-banner {
-  text-align: center;
-  padding: 40px 20px;
-  animation: fadeIn 0.6s ease;
+/* Quest Navigator */
+.quest-navigator {
+  position: relative;
+  margin-bottom: 24px;
 }
 
-.unlock-title {
-  font-size: 32px;
-  font-weight: 900;
+.quest-selector {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(66, 103, 178, 0.2) 0%, rgba(66, 103, 178, 0.1) 100%);
+  border: 2px solid rgba(66, 103, 178, 0.4);
+  border-radius: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.quest-selector:hover,
+.quest-selector.active {
+  border-color: #4267B2;
+  background: linear-gradient(135deg, rgba(66, 103, 178, 0.3) 0%, rgba(66, 103, 178, 0.15) 100%);
+}
+
+.selector-phase {
+  font-size: 12px;
+  font-weight: 700;
   color: #4267B2;
-  margin: 0 0 12px 0;
-  letter-spacing: 2px;
+  background: rgba(66, 103, 178, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
   text-transform: uppercase;
-}
-
-.quest-day {
-  font-size: 14px;
-  color: #888;
   letter-spacing: 1px;
 }
 
+.selector-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.selector-arrow {
+  color: #4267B2;
+  font-size: 12px;
+}
+
+/* Quest Menu Dropdown */
+.quest-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin-top: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 200;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.menu-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  background: #1a1a1a;
+}
+
+.menu-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 4px 0;
+}
+
+.menu-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.phases-list {
+  padding: 8px;
+}
+
+.phase-group {
+  margin-bottom: 4px;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.phase-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.phase-header.current {
+  background: rgba(66, 103, 178, 0.2);
+}
+
+.phase-header.completed {
+  opacity: 0.8;
+}
+
+.phase-header.locked {
+  opacity: 0.4;
+}
+
+.phase-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.phase-header.completed .phase-indicator {
+  background: #22c55e;
+}
+
+.phase-header.current .phase-indicator {
+  background: #4267B2;
+}
+
+.check-icon {
+  color: #fff;
+}
+
+.lock-icon {
+  font-size: 12px;
+}
+
+.phase-number {
+  color: #fff;
+}
+
+.phase-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.phase-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.phase-subtitle {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.phase-expand {
+  color: #666;
+  font-size: 16px;
+}
+
+.quests-list {
+  padding: 4px 0 4px 44px;
+}
+
+.quest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.quest-item:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quest-item.current {
+  background: rgba(66, 103, 178, 0.2);
+}
+
+.quest-item.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quest-item:disabled {
+  cursor: not-allowed;
+}
+
+.quest-status {
+  font-size: 14px;
+}
+
+.status-complete {
+  color: #22c55e;
+}
+
+.status-current {
+  color: #4267B2;
+}
+
+.status-locked {
+  color: #444;
+}
+
+.quest-name {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.quest-item.completed .quest-name {
+  color: #888;
+}
+
+.quest-item.current .quest-name {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Progress Overview */
+.progress-overview {
+  margin-bottom: 32px;
+}
+
+.progress-bar-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4267B2 0%, #22c55e 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.progress-current {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4267B2;
+}
+
+.progress-total {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Quest Content */
 .quest-content {
   animation: slideUp 0.6s ease;
 }
@@ -289,10 +706,11 @@ onMounted(() => {
   color: #4267B2;
   padding: 8px 16px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   margin-bottom: 16px;
+  text-transform: uppercase;
 }
 
 .quest-title {
@@ -301,6 +719,7 @@ onMounted(() => {
   color: #fff;
   margin: 0 0 32px 0;
   letter-spacing: 1px;
+  line-height: 1.2;
 }
 
 .lesson-section {
@@ -402,15 +821,31 @@ onMounted(() => {
   color: #fff;
 }
 
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .btn-large {
   width: 100%;
   padding: 20px;
+}
+
+.btn-return {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(66, 103, 178, 0.4);
   background: #3B5998;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
 .btn-primary:disabled {
