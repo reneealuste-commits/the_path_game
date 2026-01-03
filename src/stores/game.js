@@ -93,7 +93,7 @@ Discipline in your daily routine gives you freedom in your life. Discipline in y
 It's hard. It requires sacrifice. But that's the path. Discipline. Equals. Freedom.
 
 Now go do what you know you should do. Good.`,
-    videoUrl: 'https://www.youtube.com/watch?v=N7FXEgFhBCQ',
+    videoUrl: 'https://www.youtube.com/watch?v=ZbQh1ZPG5pc',
     duration: 1
   },
   week6: {
