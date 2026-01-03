@@ -28,6 +28,7 @@ export const useGameStore = defineStore('game', () => {
 
   // Progress tracking - synced with Firestore
   const currentWeek = ref(1)
+  const viewingQuest = ref(null) // Quest being viewed (null = current quest)
   const streak = ref(0)
   const totalMedals = ref(0)
   const globalRank = ref(0)
@@ -119,9 +120,22 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  // Get current quest
+  // Get current quest (or viewed quest)
   const currentQuest = computed(() => {
+    if (viewingQuest.value !== null) {
+      return getQuestById(viewingQuest.value) || QUESTS[0]
+    }
     return getQuestById(currentWeek.value) || QUESTS[0]
+  })
+
+  // Get actual progress quest (ignores viewing)
+  const actualQuest = computed(() => {
+    return getQuestById(currentWeek.value) || QUESTS[0]
+  })
+
+  // Check if viewing a completed quest
+  const isViewingCompleted = computed(() => {
+    return viewingQuest.value !== null && viewingQuest.value < currentWeek.value
   })
 
   // Check if all quests are complete
@@ -140,12 +154,18 @@ export const useGameStore = defineStore('game', () => {
     return QUESTS.filter(q => q.id < currentWeek.value)
   })
 
-  // Navigate to specific quest (only completed ones)
+  // Navigate to specific quest (only completed ones) - for viewing
   const goToQuest = (questId) => {
     if (questId < currentWeek.value) {
-      // Can only go back to completed quests
-      currentWeek.value = questId
+      viewingQuest.value = questId
+    } else if (questId === currentWeek.value) {
+      viewingQuest.value = null // Back to current quest
     }
+  }
+
+  // Return to current (actual) quest
+  const returnToCurrent = () => {
+    viewingQuest.value = null
   }
 
   // Check if streak is broken
@@ -281,6 +301,7 @@ export const useGameStore = defineStore('game', () => {
     // State
     profile,
     currentWeek,
+    viewingQuest,
     streak,
     totalMedals,
     globalRank,
@@ -293,6 +314,8 @@ export const useGameStore = defineStore('game', () => {
 
     // Computed
     currentQuest,
+    actualQuest,
+    isViewingCompleted,
     allQuestsComplete,
     allPhases,
     allQuests,
@@ -305,6 +328,7 @@ export const useGameStore = defineStore('game', () => {
     breakStreak,
     checkStreakIntegrity,
     resetGame,
-    goToQuest
+    goToQuest,
+    returnToCurrent
   }
 })
