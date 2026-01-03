@@ -166,11 +166,18 @@ app.post('/api/evaluate', upload.single('audio'), async (req, res) => {
 
   try {
     const questTitle = req.body.questTitle || 'Unknown Quest'
+    const browserTranscription = req.body.transcription || ''
     let transcription = ''
     let usedFallback = true
 
-    // Only try Google transcription if we have a working client
-    if (speechClient && audioFile) {
+    // First, try to use browser transcription if provided
+    if (browserTranscription.trim()) {
+      transcription = browserTranscription.trim()
+      usedFallback = false
+      console.log('Using browser transcription:', transcription)
+    }
+    // Otherwise try Google transcription if we have a working client
+    else if (speechClient && audioFile) {
       try {
         console.log('Transcribing audio with Google Cloud Speech-to-Text...')
         transcription = await transcribeAudio(audioFile)
@@ -184,6 +191,7 @@ app.post('/api/evaluate', upload.single('audio'), async (req, res) => {
     // Fallback: Use dummy transcription (instant response)
     if (usedFallback || !transcription) {
       transcription = "I practiced detachment today in a stressful meeting. When the client started criticizing our work, I felt defensive at first. But then I stepped back mentally, like I was watching from above. I observed the situation objectively. I realized the client had valid concerns. I was able to respond calmly and we found a solution together."
+      console.log('Using fallback transcription')
     }
 
     // Analyze transcription and generate feedback
