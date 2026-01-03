@@ -86,7 +86,7 @@
         <div class="badge-award">
           <div class="badge-icon">🎖️</div>
           <div class="badge-name">{{ gameStore.currentQuest.title }}</div>
-          <div class="badge-subtitle">Day {{ gameStore.currentDay - 1 }} Complete</div>
+          <div class="badge-subtitle">Quest {{ gameStore.currentWeek - 1 }} Complete</div>
         </div>
 
         <!-- Streak Info -->

@@ -53,14 +53,18 @@
           <button
             @click="goToDebrief"
             class="btn btn-primary btn-large"
-            :disabled="gameStore.hasCompletedToday"
+            :disabled="gameStore.hasCompletedCurrent || gameStore.allQuestsComplete"
           >
-            <span v-if="!gameStore.hasCompletedToday">🎯 BEGIN MISSION</span>
-            <span v-else>✓ COMPLETED TODAY</span>
+            <span v-if="!gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete">🎯 BEGIN MISSION</span>
+            <span v-else-if="gameStore.allQuestsComplete">✓ ALL QUESTS COMPLETE</span>
+            <span v-else>✓ QUEST COMPLETE</span>
           </button>
 
-          <p v-if="gameStore.hasCompletedToday" class="completed-message">
-            Come back tomorrow for Day {{ gameStore.currentDay + 1 }}
+          <p v-if="gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete" class="completed-message">
+            Quest completed! Continue to next quest.
+          </p>
+          <p v-if="gameStore.allQuestsComplete" class="completed-message">
+            Congratulations! You've completed Phase 1: The Foundation
           </p>
         </div>
       </div>
@@ -68,16 +72,16 @@
       <!-- Progress Footer -->
       <div class="progress-footer">
         <div class="stat">
-          <span class="stat-label">Week</span>
-          <span class="stat-value">{{ gameStore.currentWeek }}</span>
+          <span class="stat-label">Quest</span>
+          <span class="stat-value">{{ gameStore.currentWeek }}/15</span>
         </div>
         <div class="stat">
           <span class="stat-label">Medals</span>
           <span class="stat-value">{{ gameStore.totalMedals }}</span>
         </div>
         <div class="stat">
-          <span class="stat-label">Badges</span>
-          <span class="stat-value">{{ gameStore.badges.length }}</span>
+          <span class="stat-label">Streak</span>
+          <span class="stat-value">{{ gameStore.streak }}</span>
         </div>
       </div>
     </div>
