@@ -2,11 +2,12 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
   signInWithPopup,
+  signInAnonymously as firebaseSignInAnonymously,
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db, googleProvider, facebookProvider } from '../firebase/config'
+import { auth, db, googleProvider } from '../firebase/config'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -30,12 +31,13 @@ export const useAuthStore = defineStore('auth', () => {
             }, { merge: true })
           } else {
             // Create new user document
+            const isAnonymous = firebaseUser.isAnonymous
             const newUser = {
               uid: firebaseUser.uid,
-              displayName: firebaseUser.displayName,
-              email: firebaseUser.email,
-              photoURL: firebaseUser.photoURL,
-              provider: firebaseUser.providerData[0]?.providerId || 'unknown',
+              displayName: firebaseUser.displayName || (isAnonymous ? 'Anonymous User' : 'User'),
+              email: firebaseUser.email || null,
+              photoURL: firebaseUser.photoURL || null,
+              provider: firebaseUser.providerData[0]?.providerId || (isAnonymous ? 'anonymous' : 'unknown'),
               createdAt: serverTimestamp(),
               lastLoginAt: serverTimestamp(),
               currentWeek: 1,
@@ -69,11 +71,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Sign in with Facebook
-  const signInWithFacebook = async () => {
+  // Sign in anonymously
+  const signInAnonymously = async () => {
     error.value = null
     try {
-      const result = await signInWithPopup(auth, facebookProvider)
+      const result = await signInAnonymously(auth)
       return result.user
     } catch (err) {
       error.value = err.message
