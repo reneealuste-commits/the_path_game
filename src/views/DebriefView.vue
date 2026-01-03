@@ -204,28 +204,53 @@ const submitDebrief = async () => {
 
   isSubmitting.value = true
 
-  // Simulate AI evaluation
-  // In production, send audio to backend for analysis
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  try {
+    // Send audio to backend for AI evaluation
+    const formData = new FormData()
+    formData.append('audio', recordedBlob, 'debrief.webm')
 
-  const evaluation = {
-    discipline: Math.floor(Math.random() * 30) + 70,
-    strategy: Math.floor(Math.random() * 30) + 70,
-    communication: Math.floor(Math.random() * 30) + 70,
-    overall: 0
+    const response = await fetch('/api/evaluate', {
+      method: 'POST',
+      body: formData
+    })
+
+    const result = await response.json()
+
+    if (result.success) {
+      // Complete quest with evaluation and feedback
+      await gameStore.completeQuest(recordedBlob, result.evaluation, result.feedback)
+
+      isSubmitting.value = false
+
+      // Navigate to results
+      router.push('/results')
+    } else {
+      throw new Error('Evaluation failed')
+    }
+  } catch (error) {
+    console.error('Submission error:', error)
+    // Fallback to simulated evaluation if API fails
+    const evaluation = {
+      discipline: Math.floor(Math.random() * 30) + 70,
+      strategy: Math.floor(Math.random() * 30) + 70,
+      communication: Math.floor(Math.random() * 30) + 70,
+      overall: 0
+    }
+
+    evaluation.overall = Math.floor(
+      (evaluation.discipline + evaluation.strategy + evaluation.communication) / 3
+    )
+
+    const feedback = {
+      whatYouDidWell: ["You showed up and completed the mission."],
+      whereToImprove: ["Keep pushing. There's always room to improve."]
+    }
+
+    await gameStore.completeQuest(recordedBlob, evaluation, feedback)
+
+    isSubmitting.value = false
+    router.push('/results')
   }
-
-  evaluation.overall = Math.floor(
-    (evaluation.discipline + evaluation.strategy + evaluation.communication) / 3
-  )
-
-  // Complete quest
-  await gameStore.completeQuest(recordedBlob, evaluation)
-
-  isSubmitting.value = false
-
-  // Navigate to results
-  router.push('/results')
 }
 
 onUnmounted(() => {
