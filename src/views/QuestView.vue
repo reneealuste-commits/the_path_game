@@ -206,72 +206,24 @@ onMounted(() => {
   letter-spacing: 1px;
 }
 
-.audio-section {
+.lesson-section {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 32px;
+  padding: 32px;
+  margin-bottom: 24px;
 }
 
-.audio-player {
-  text-align: center;
-}
-
-.play-button {
-  width: 100%;
-  padding: 20px;
-  font-size: 16px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #000;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.play-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
-}
-
-.play-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.progress-bar {
-  margin-top: 16px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
-  transition: width 0.1s linear;
-}
-
-.lesson-text {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.lesson-text p {
-  font-size: 16px;
+.lesson-text-content p {
+  font-size: 17px;
   line-height: 1.8;
-  color: #ccc;
+  color: #e0e0e0;
   margin: 0;
 }
 
 .video-option {
-  margin-top: 32px;
+  margin-top: 24px;
+  margin-bottom: 24px;
   text-align: center;
   padding: 24px;
   background: rgba(255, 255, 255, 0.03);
