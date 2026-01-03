@@ -75,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
   const signInAnonymously = async () => {
     error.value = null
     try {
-      const result = await signInAnonymously(auth)
+      const result = await firebaseSignInAnonymously(auth)
       return result.user
     } catch (err) {
       error.value = err.message
@@ -96,7 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     initAuth,
     signInWithGoogle,
-    signInWithFacebook,
+    signInAnonymously,
     logout
   }
 })
