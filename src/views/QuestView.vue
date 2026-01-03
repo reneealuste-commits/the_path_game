@@ -174,7 +174,7 @@ onMounted(() => {
 .unlock-title {
   font-size: 32px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
   margin: 0 0 12px 0;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -192,8 +192,8 @@ onMounted(() => {
 
 .phase-badge {
   display: inline-block;
-  background: rgba(255, 215, 0, 0.2);
-  color: #ffd700;
+  background: rgba(67, 103, 178, 0.2);
+  color: #4267B2;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 12px;
@@ -271,15 +271,15 @@ onMounted(() => {
 .mission-title {
   font-size: 14px;
   font-weight: 700;
-  color: #ffd700;
+  color: #4267B2;
   letter-spacing: 2px;
   text-transform: uppercase;
   margin: 0 0 16px 0;
 }
 
 .mission-card {
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  background: rgba(67, 103, 178, 0.1);
+  border: 2px solid rgba(67, 103, 178, 0.3);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
