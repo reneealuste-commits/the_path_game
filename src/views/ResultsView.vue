@@ -244,7 +244,7 @@ onMounted(() => {
 .success-title {
   font-size: 32px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
   margin: 16px 0 0 0;
   letter-spacing: 2px;
 }
@@ -260,7 +260,7 @@ onMounted(() => {
 .section-title {
   font-size: 18px;
   font-weight: 700;
-  color: #ffd700;
+  color: #4267B2;
   text-align: center;
   margin: 0 0 24px 0;
   letter-spacing: 1px;
@@ -300,7 +300,7 @@ onMounted(() => {
 
 .score-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ffd700 0%, #ffed4e 100%);
+  background: #4267B2;
   transition: width 1s ease;
 }
 
@@ -309,15 +309,15 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  background: rgba(255, 215, 0, 0.1);
+  background: rgba(67, 103, 178, 0.1);
   border-radius: 12px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  border: 2px solid rgba(67, 103, 178, 0.3);
 }
 
 .overall-label {
   font-size: 18px;
   font-weight: 700;
-  color: #ffd700;
+  color: #4267B2;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -325,13 +325,13 @@ onMounted(() => {
 .overall-value {
   font-size: 48px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
 }
 
 .badge-award {
   text-align: center;
   padding: 32px;
-  background: rgba(255, 215, 0, 0.05);
+  background: rgba(67, 103, 178, 0.05);
   border-radius: 16px;
   margin-bottom: 24px;
 }
