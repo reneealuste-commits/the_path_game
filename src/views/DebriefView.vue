@@ -29,10 +29,11 @@
             <button
               @click="toggleRecording"
               class="mic-button"
-              :class="{ recording: isRecording, recorded: hasRecording }"
-              :disabled="recordingDuration >= 45 && !isRecording"
+              :class="{ recording: isRecording, recorded: hasRecording, submitting: isSubmitting }"
+              :disabled="isSubmitting || (recordingDuration >= 45 && !isRecording)"
             >
-              <span v-if="!isRecording && !hasRecording" class="mic-icon">🎤</span>
+              <span v-if="isSubmitting" class="submitting-icon">⏳</span>
+              <span v-else-if="!isRecording && !hasRecording" class="mic-icon">🎤</span>
               <span v-else-if="isRecording" class="recording-icon">⏺</span>
               <span v-else class="check-icon">✓</span>
             </button>
