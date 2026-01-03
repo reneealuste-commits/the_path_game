@@ -65,7 +65,7 @@
           <div v-if="hasRecording" class="audio-preview">
             <button @click="playRecording" class="btn btn-secondary">
               <span v-if="!isPlaying">▶ Play Recording</span>
-              <span v-else>⏸ Playing...</span>
+              <span v-else>⏸ Pause</span>
             </button>
             <button @click="resetRecording" class="btn btn-text">
               🔄 Re-record
@@ -106,6 +106,7 @@ let recordingInterval = null
 let mediaRecorder = null
 let audioChunks = []
 let recordedBlob = null
+let audioElement = null
 
 const formattedTime = computed(() => {
   return recordingDuration.value.toString().padStart(2, '0')
@@ -214,21 +215,40 @@ const stopRecording = () => {
 const playRecording = () => {
   if (!recordedBlob) return
 
-  const audio = new Audio(URL.createObjectURL(recordedBlob))
-  isPlaying.value = true
-
-  audio.onended = () => {
+  // If audio is already playing, pause it
+  if (isPlaying.value && audioElement) {
+    audioElement.pause()
     isPlaying.value = false
+    return
   }
 
-  audio.play()
+  // Create new audio element if it doesn't exist or was ended
+  if (!audioElement) {
+    audioElement = new Audio(URL.createObjectURL(recordedBlob))
+
+    audioElement.onended = () => {
+      isPlaying.value = false
+      audioElement = null
+    }
+  }
+
+  // Play the audio
+  audioElement.play()
+  isPlaying.value = true
 }
 
 const resetRecording = () => {
+  // Stop and clean up audio if it's playing
+  if (audioElement) {
+    audioElement.pause()
+    audioElement = null
+  }
+
   hasRecording.value = false
   recordingDuration.value = 0
   recordedBlob = null
   audioChunks = []
+  isPlaying.value = false
 }
 
 const submitDebrief = async () => {
