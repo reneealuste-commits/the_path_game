@@ -13,6 +13,12 @@
           <p>Speak for up to 45 seconds about what you observed and learned.</p>
         </div>
 
+        <!-- Mission Reminder -->
+        <div class="mission-reminder">
+          <h4 class="mission-label">YOUR MISSION</h4>
+          <p class="mission-text">{{ gameStore.currentQuest.mission }}</p>
+        </div>
+
         <div class="recorder-section">
           <div class="timer" v-if="isRecording || recordingDuration > 0">
             <span class="time">{{ formattedTime }}</span>
@@ -379,6 +385,30 @@ onUnmounted(() => {
   color: #ccc;
   margin: 0;
   line-height: 1.6;
+}
+
+.mission-reminder {
+  background: rgba(66, 103, 178, 0.1);
+  border: 2px solid rgba(66, 103, 178, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.mission-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4267B2;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 12px 0;
+}
+
+.mission-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #e0e0e0;
+  margin: 0;
 }
 
 .recorder-section {
