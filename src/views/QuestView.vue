@@ -111,7 +111,7 @@ onMounted(() => {
 <style scoped>
 .quest-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: #000000;
   padding-bottom: 80px;
 }
 
