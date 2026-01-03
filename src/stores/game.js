@@ -301,14 +301,13 @@ export const useGameStore = defineStore('game', () => {
 
   // Progress tracking
   const currentWeek = ref(1)
-  const currentDay = ref(1)
   const streak = ref(0)
   const totalMedals = ref(0)
   const globalRank = ref(0)
 
   // Quest state
   const questStartTime = ref(null)
-  const hasCompletedToday = ref(false)
+  const hasCompletedCurrent = ref(false)
   const lastCompletionDate = ref(null)
 
   // Medals and badges
@@ -325,7 +324,6 @@ export const useGameStore = defineStore('game', () => {
       const data = JSON.parse(saved)
       profile.value = data.profile || profile.value
       currentWeek.value = data.currentWeek || 1
-      currentDay.value = data.currentDay || 1
       streak.value = data.streak || 0
       totalMedals.value = data.totalMedals || 0
       globalRank.value = data.globalRank || 0
@@ -333,6 +331,7 @@ export const useGameStore = defineStore('game', () => {
       badges.value = data.badges || []
       lastCompletionDate.value = data.lastCompletionDate || null
       questStartTime.value = data.questStartTime || null
+      hasCompletedCurrent.value = data.hasCompletedCurrent || false
 
       // Check if streak is broken
       checkStreakIntegrity()
@@ -344,14 +343,14 @@ export const useGameStore = defineStore('game', () => {
     const data = {
       profile: profile.value,
       currentWeek: currentWeek.value,
-      currentDay: currentDay.value,
       streak: streak.value,
       totalMedals: totalMedals.value,
       globalRank: globalRank.value,
       medals: medals.value,
       badges: badges.value,
       lastCompletionDate: lastCompletionDate.value,
-      questStartTime: questStartTime.value
+      questStartTime: questStartTime.value,
+      hasCompletedCurrent: hasCompletedCurrent.value
     }
     localStorage.setItem('the-path-game', JSON.stringify(data))
   }
