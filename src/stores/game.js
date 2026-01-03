@@ -1,5 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  serverTimestamp
+} from 'firebase/firestore'
+import { db } from '../firebase/config'
+import { useAuthStore } from './auth'
 
 // Quest data for Phase 1: The Foundation (15 Quests)
 const QUESTS = {
@@ -293,13 +307,16 @@ Study. Every day. Good.`,
 }
 
 export const useGameStore = defineStore('game', () => {
-  // Profile
-  const profile = ref({
-    name: '',
-    createdAt: null
-  })
+  const authStore = useAuthStore()
 
-  // Progress tracking
+  // Profile - now comes from auth store
+  const profile = computed(() => ({
+    name: authStore.user?.displayName || '',
+    photoURL: authStore.user?.photoURL || '',
+    createdAt: authStore.user?.createdAt || null
+  }))
+
+  // Progress tracking - synced with Firestore
   const currentWeek = ref(1)
   const streak = ref(0)
   const totalMedals = ref(0)
@@ -317,52 +334,79 @@ export const useGameStore = defineStore('game', () => {
   // Audio recording
   const currentRecording = ref(null)
 
-  // Initialize from localStorage
-  const initialize = () => {
-    const saved = localStorage.getItem('the-path-game')
-    if (saved) {
-      const data = JSON.parse(saved)
-      profile.value = data.profile || profile.value
-      currentWeek.value = data.currentWeek || 1
-      streak.value = data.streak || 0
-      totalMedals.value = data.totalMedals || 0
-      globalRank.value = data.globalRank || 0
-      medals.value = data.medals || []
-      badges.value = data.badges || []
-      lastCompletionDate.value = data.lastCompletionDate || null
-      questStartTime.value = data.questStartTime || null
-      hasCompletedCurrent.value = data.hasCompletedCurrent || false
+  // Helper: Get ISO week ID
+  const getISOWeekId = (date) => {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7))
+    const yearStart = new Date(d.getFullYear(), 0, 1)
+    const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7)
+    return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`
+  }
 
-      // Check if streak is broken
+  // Initialize from Firestore
+  const initialize = async () => {
+    if (!authStore.user?.uid) return
+
+    try {
+      const userDoc = await getDoc(doc(db, 'users', authStore.user.uid))
+      if (userDoc.exists()) {
+        const data = userDoc.data()
+        currentWeek.value = data.currentWeek || 1
+        streak.value = data.streak || 0
+        totalMedals.value = data.totalMedals || 0
+        globalRank.value = data.globalRank || 0
+        lastCompletionDate.value = data.lastCompletionDate?.toDate() || null
+        hasCompletedCurrent.value = data.hasCompletedCurrent || false
+      }
+
+      // Fetch medals from subcollection
+      const medalsQuery = query(
+        collection(db, 'users', authStore.user.uid, 'medals'),
+        orderBy('earnedAt', 'asc')
+      )
+      const medalsSnapshot = await getDocs(medalsQuery)
+      medals.value = medalsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        earnedAt: doc.data().earnedAt?.toDate() || null
+      }))
+
+      // Fetch badges from subcollection
+      const badgesQuery = query(
+        collection(db, 'users', authStore.user.uid, 'badges'),
+        orderBy('earnedAt', 'asc')
+      )
+      const badgesSnapshot = await getDocs(badgesQuery)
+      badges.value = badgesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        earnedAt: doc.data().earnedAt?.toDate() || null
+      }))
+
       checkStreakIntegrity()
+    } catch (error) {
+      console.error('Error initializing game store:', error)
     }
   }
 
-  // Save to localStorage
-  const save = () => {
-    const data = {
-      profile: profile.value,
-      currentWeek: currentWeek.value,
-      streak: streak.value,
-      totalMedals: totalMedals.value,
-      globalRank: globalRank.value,
-      medals: medals.value,
-      badges: badges.value,
-      lastCompletionDate: lastCompletionDate.value,
-      questStartTime: questStartTime.value,
-      hasCompletedCurrent: hasCompletedCurrent.value
-    }
-    localStorage.setItem('the-path-game', JSON.stringify(data))
-  }
+  // Save to Firestore
+  const save = async () => {
+    if (!authStore.user?.uid) return
 
-  // Set profile name
-  const setProfile = (name) => {
-    profile.value = {
-      name,
-      createdAt: Date.now()
+    try {
+      await updateDoc(doc(db, 'users', authStore.user.uid), {
+        currentWeek: currentWeek.value,
+        streak: streak.value,
+        totalMedals: totalMedals.value,
+        globalRank: globalRank.value,
+        lastCompletionDate: lastCompletionDate.value,
+        hasCompletedCurrent: hasCompletedCurrent.value,
+        lastLoginAt: serverTimestamp()
+      })
+    } catch (error) {
+      console.error('Error saving to Firestore:', error)
     }
-    questStartTime.value = Date.now()
-    save()
   }
 
   // Get current quest
@@ -387,67 +431,106 @@ export const useGameStore = defineStore('game', () => {
     const daysDiff = Math.floor((today - lastDate) / (24 * 60 * 60 * 1000))
 
     if (daysDiff > 1) {
-      // Streak broken
       return true
     }
 
     return false
   }
 
+  // Update weekly progress for leaderboard
+  const updateWeeklyProgress = async () => {
+    if (!authStore.user?.uid) return
+
+    try {
+      const now = new Date()
+      const weekId = getISOWeekId(now)
+      const docId = `${weekId}_${authStore.user.uid}`
+
+      await setDoc(doc(db, 'weeklyProgress', docId), {
+        userId: authStore.user.uid,
+        weekId,
+        weekStart: serverTimestamp(),
+        medalCount: totalMedals.value,
+        streakContribution: streak.value,
+        displayName: authStore.user.displayName,
+        photoURL: authStore.user.photoURL
+      }, { merge: true })
+    } catch (error) {
+      console.error('Error updating weekly progress:', error)
+    }
+  }
+
   // Complete daily quest
   const completeQuest = async (audioBlob, evaluation, feedback = null) => {
-    // Save recording
+    if (!authStore.user?.uid) return
+
+    // Save recording locally
     currentRecording.value = audioBlob
 
     // Update streak
     streak.value += 1
 
-    // Award medal
-    const medal = {
+    // Add medal to Firestore subcollection
+    const medalData = {
       name: currentQuest.value.title,
       questNumber: currentWeek.value,
-      earnedAt: Date.now(),
+      earnedAt: serverTimestamp(),
       evaluation,
       feedback
     }
-    medals.value.push(medal)
-    totalMedals.value += 1
 
-    // Update global rank
-    globalRank.value += Math.floor(Math.random() * 10) + 5
+    try {
+      const medalRef = await addDoc(
+        collection(db, 'users', authStore.user.uid, 'medals'),
+        medalData
+      )
+      medals.value.push({ id: medalRef.id, ...medalData, earnedAt: new Date() })
+      totalMedals.value += 1
 
-    // Check if this completes Phase 1
-    if (currentWeek.value === 15) {
-      // Award final badge for completing Phase 1
-      badges.value.push({
-        name: 'Phase 1: The Foundation - Complete',
-        phase: 1,
-        earnedAt: Date.now()
-      })
+      // Update global rank
+      globalRank.value += Math.floor(Math.random() * 10) + 5
+
+      // Check if this completes Phase 1
+      if (currentWeek.value === 15) {
+        const badgeData = {
+          name: 'Phase 1: The Foundation - Complete',
+          phase: 1,
+          earnedAt: serverTimestamp()
+        }
+        const badgeRef = await addDoc(
+          collection(db, 'users', authStore.user.uid, 'badges'),
+          badgeData
+        )
+        badges.value.push({ id: badgeRef.id, ...badgeData, earnedAt: new Date() })
+      }
+
+      // Move to next quest
+      currentWeek.value += 1
+      hasCompletedCurrent.value = false
+
+      // Mark as completed
+      lastCompletionDate.value = new Date()
+
+      // Save progress to Firestore
+      await save()
+
+      // Update weekly progress for leaderboard
+      await updateWeeklyProgress()
+    } catch (error) {
+      console.error('Error completing quest:', error)
     }
-
-    // Move to next quest
-    currentWeek.value += 1
-    hasCompletedCurrent.value = false
-
-    // Mark as completed
-    lastCompletionDate.value = Date.now()
-
-    save()
   }
 
   // Break streak - reset progress
-  const breakStreak = () => {
+  const breakStreak = async () => {
     streak.value = 0
     currentWeek.value = 1
     hasCompletedCurrent.value = false
-    save()
+    await save()
   }
 
   // Reset game
-  const resetGame = () => {
-    localStorage.removeItem('the-path-game')
-    profile.value = { name: '', createdAt: null }
+  const resetGame = async () => {
     currentWeek.value = 1
     streak.value = 0
     totalMedals.value = 0
@@ -457,6 +540,7 @@ export const useGameStore = defineStore('game', () => {
     questStartTime.value = null
     lastCompletionDate.value = null
     hasCompletedCurrent.value = false
+    await save()
   }
 
   return {
@@ -480,7 +564,6 @@ export const useGameStore = defineStore('game', () => {
     // Actions
     initialize,
     save,
-    setProfile,
     completeQuest,
     breakStreak,
     checkStreakIntegrity,
