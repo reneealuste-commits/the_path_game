@@ -30,16 +30,16 @@
           </button>
 
           <button
-            @click="handleFacebookLogin"
-            class="btn btn-facebook"
+            @click="handleAnonymousLogin"
+            class="btn btn-anonymous"
             :disabled="isLoading"
           >
             <span class="btn-icon">
               <svg viewBox="0 0 24 24" width="24" height="24">
-                <path fill="#fff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
               </svg>
             </span>
-            Continue with Facebook
+            Continue as Guest
           </button>
         </div>
 
@@ -78,13 +78,13 @@ const handleGoogleLogin = async () => {
   }
 }
 
-const handleFacebookLogin = async () => {
+const handleAnonymousLogin = async () => {
   isLoading.value = true
   try {
-    await authStore.signInWithFacebook()
+    await authStore.signInAnonymously()
     router.push('/quest')
   } catch (err) {
-    console.error('Facebook login failed:', err)
+    console.error('Anonymous login failed:', err)
   } finally {
     isLoading.value = false
   }
@@ -191,15 +191,16 @@ const handleFacebookLogin = async () => {
   box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
 }
 
-.btn-facebook {
-  background: #1877F2;
+.btn-anonymous {
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.btn-facebook:hover:not(:disabled) {
-  background: #166FE5;
+.btn-anonymous:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(24, 119, 242, 0.4);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
 }
 
 .btn:disabled {
