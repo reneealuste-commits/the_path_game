@@ -177,9 +177,9 @@
           <span class="stat-label">Quest</span>
           <span class="stat-value">{{ Math.min(gameStore.currentWeek, 100) }}/100</span>
         </div>
-        <div class="stat">
-          <span class="stat-label">Medals</span>
-          <span class="stat-value">{{ gameStore.totalMedals }}</span>
+        <div class="stat clickable" @click="goToSkillTags">
+          <span class="stat-label">Skill Tags</span>
+          <span class="stat-value">{{ gameStore.totalSkillTags }}</span>
         </div>
         <div class="stat">
           <span class="stat-label">Streak</span>

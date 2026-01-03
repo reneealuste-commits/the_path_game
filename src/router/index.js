@@ -41,6 +41,12 @@ const routes = [
     name: 'Leaderboard',
     component: () => import('../views/LeaderboardView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/skilltags',
+    name: 'SkillTags',
+    component: () => import('../views/SkillTagsView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
