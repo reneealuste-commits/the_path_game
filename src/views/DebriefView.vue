@@ -376,7 +376,7 @@ onUnmounted(() => {
 .time {
   font-size: 48px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
 }
 
 .max-time {
@@ -393,8 +393,8 @@ onUnmounted(() => {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 4px solid #ffd700;
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 4px solid #4267B2;
+  background: #4267B2;
   font-size: 48px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -405,7 +405,7 @@ onUnmounted(() => {
 
 .mic-button:hover:not(:disabled) {
   transform: scale(1.1);
-  box-shadow: 0 8px 32px rgba(255, 215, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(66, 103, 178, 0.5);
 }
 
 .mic-button.recording {
