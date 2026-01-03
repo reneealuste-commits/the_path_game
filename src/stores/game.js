@@ -6,9 +6,22 @@ const QUESTS = {
   week1: {
     phase: 'THE FOUNDATION',
     title: 'Detach',
-    description: 'Step back from the chaos. Observe before you act. Detachment gives you clarity.',
-    mission: 'Today, in your next meeting, detach and observe—make mental notes. Record the outcome in under forty-five seconds.',
-    audioUrl: '/audio/detach-lesson.mp3', // Placeholder
+    description: 'When you are in the middle of a problem, when you are in the heat of battle, you need to detach. Pull yourself away from the immediate situation, from the emotions, from the noise. Step back. Look around. See the battlefield from a different perspective. See it from above. Detachment is the key. Detachment allows you to see the bigger picture. It allows you to make better decisions. Relax. Look around. Make a call.',
+    mission: 'Today, in your next stressful situation—a meeting, a difficult conversation, a problem—practice detachment. Mentally step outside yourself. Observe from above like you are watching a movie. See the situation clearly. Then make your decision. Record what you observed and how detachment changed your perspective.',
+    lesson: `Listen up. This is about detachment. When you're in the middle of a problem, when chaos is surrounding you, when emotions are running high—that's exactly when you need to detach.
+
+Pull yourself away from the immediate situation. Step back. Look around. See the battlefield from a different perspective. See it from above.
+
+Detachment is not about being cold or uncaring. It's about gaining perspective. It's about seeing the bigger picture so you can make better decisions.
+
+When you're emotionally invested in the moment, you can't see the holes in your plan. You can't see the danger you're walking into. But when you detach, suddenly everything becomes clear.
+
+Here's your tactical mantra: Relax. Look around. Make a call.
+
+That's it. Detach from your emotions. Observe the situation objectively. Then execute.
+
+Now get out there and practice this. Good.`,
+    videoUrl: 'https://www.youtube.com/watch?v=fKcpxmtTDyU', // Jocko on detachment
     duration: 7 // days
   },
   // Future weeks will be added here
