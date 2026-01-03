@@ -1,13 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs
-} from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { useAuthStore } from './auth'
 
@@ -43,14 +35,12 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
       const weekId = getCurrentWeekId()
 
       // Query weeklyProgress for current week
-      const q = query(
-        collection(db, 'weeklyProgress'),
-        where('weekId', '==', weekId),
-        orderBy('medalCount', 'desc'),
-        limit(100)
-      )
+      const snapshot = await db.collection('weeklyProgress')
+        .where('weekId', '==', weekId)
+        .orderBy('medalCount', 'desc')
+        .limit(100)
+        .get()
 
-      const snapshot = await getDocs(q)
       const entries = []
       let rank = 1
 
@@ -87,13 +77,11 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
     error.value = null
 
     try {
-      const q = query(
-        collection(db, 'users'),
-        orderBy('totalMedals', 'desc'),
-        limit(100)
-      )
+      const snapshot = await db.collection('users')
+        .orderBy('totalMedals', 'desc')
+        .limit(100)
+        .get()
 
-      const snapshot = await getDocs(q)
       const entries = []
       let rank = 1
 

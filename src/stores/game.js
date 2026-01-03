@@ -1,17 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp
-} from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { useAuthStore } from './auth'
 import { QUESTS, PHASES, getQuestById, getQuestsByPhase, getTotalQuests, getPhaseProgress } from '../data/quests'
@@ -60,8 +48,8 @@ export const useGameStore = defineStore('game', () => {
     if (!authStore.user?.uid) return
 
     try {
-      const userDoc = await getDoc(doc(db, 'users', authStore.user.uid))
-      if (userDoc.exists()) {
+      const userDoc = await db.collection('users').doc(authStore.user.uid).get()
+      if (userDoc.exists) {
         const data = userDoc.data()
         currentWeek.value = data.currentWeek || 1
         streak.value = data.streak || 0
@@ -72,19 +60,13 @@ export const useGameStore = defineStore('game', () => {
       }
 
       // Fetch skillTags from subcollection (try skillTags first, fall back to medals)
-      let tagsQuery = query(
-        collection(db, 'users', authStore.user.uid, 'skillTags'),
-        orderBy('earnedAt', 'asc')
-      )
-      let tagsSnapshot = await getDocs(tagsQuery)
+      let tagsQuery = db.collection('users').doc(authStore.user.uid).collection('skillTags').orderBy('earnedAt', 'asc')
+      let tagsSnapshot = await tagsQuery.get()
 
       // Fallback to medals collection for backwards compatibility
       if (tagsSnapshot.empty) {
-        tagsQuery = query(
-          collection(db, 'users', authStore.user.uid, 'medals'),
-          orderBy('earnedAt', 'asc')
-        )
-        tagsSnapshot = await getDocs(tagsQuery)
+        tagsQuery = db.collection('users').doc(authStore.user.uid).collection('medals').orderBy('earnedAt', 'asc')
+        tagsSnapshot = await tagsQuery.get()
       }
 
       skillTags.value = tagsSnapshot.docs.map(doc => ({
@@ -94,11 +76,8 @@ export const useGameStore = defineStore('game', () => {
       }))
 
       // Fetch badges from subcollection
-      const badgesQuery = query(
-        collection(db, 'users', authStore.user.uid, 'badges'),
-        orderBy('earnedAt', 'asc')
-      )
-      const badgesSnapshot = await getDocs(badgesQuery)
+      const badgesQuery = db.collection('users').doc(authStore.user.uid).collection('badges').orderBy('earnedAt', 'asc')
+      const badgesSnapshot = await badgesQuery.get()
       badges.value = badgesSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -116,14 +95,14 @@ export const useGameStore = defineStore('game', () => {
     if (!authStore.user?.uid) return
 
     try {
-      await updateDoc(doc(db, 'users', authStore.user.uid), {
+      await db.collection('users').doc(authStore.user.uid).update({
         currentWeek: currentWeek.value,
         streak: streak.value,
         totalSkillTags: totalSkillTags.value,
         globalRank: globalRank.value,
         lastCompletionDate: lastCompletionDate.value,
         hasCompletedCurrent: hasCompletedCurrent.value,
-        lastLoginAt: serverTimestamp()
+        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
       })
     } catch (error) {
       console.error('Error saving to Firestore:', error)
@@ -205,10 +184,10 @@ export const useGameStore = defineStore('game', () => {
       const weekId = getISOWeekId(now)
       const docId = `${weekId}_${authStore.user.uid}`
 
-      await setDoc(doc(db, 'weeklyProgress', docId), {
+      await db.collection('weeklyProgress').doc(docId).set({
         userId: authStore.user.uid,
         weekId,
-        weekStart: serverTimestamp(),
+        weekStart: firebase.firestore.FieldValue.serverTimestamp(),
         skillTagCount: totalSkillTags.value,
         streakContribution: streak.value,
         displayName: authStore.user.displayName,
@@ -233,16 +212,13 @@ export const useGameStore = defineStore('game', () => {
     const skillTagData = {
       name: currentQuest.value.title,
       questNumber: currentWeek.value,
-      earnedAt: serverTimestamp(),
+      earnedAt: firebase.firestore.FieldValue.serverTimestamp(),
       evaluation,
       feedback
     }
 
     try {
-      const tagRef = await addDoc(
-        collection(db, 'users', authStore.user.uid, 'skillTags'),
-        skillTagData
-      )
+      const tagRef = await db.collection('users').doc(authStore.user.uid).collection('skillTags').add(skillTagData)
       skillTags.value.push({ id: tagRef.id, ...skillTagData, earnedAt: new Date() })
       totalSkillTags.value += 1
 
@@ -259,12 +235,9 @@ export const useGameStore = defineStore('game', () => {
         const badgeData = {
           name: `Phase ${quest.phase}: ${phase.name} - Complete`,
           phase: quest.phase,
-          earnedAt: serverTimestamp()
+          earnedAt: firebase.firestore.FieldValue.serverTimestamp()
         }
-        const badgeRef = await addDoc(
-          collection(db, 'users', authStore.user.uid, 'badges'),
-          badgeData
-        )
+        const badgeRef = await db.collection('users').doc(authStore.user.uid).collection('badges').add(badgeData)
         badges.value.push({ id: badgeRef.id, ...badgeData, earnedAt: new Date() })
       }
 
