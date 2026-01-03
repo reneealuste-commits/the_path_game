@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInAnonymously as firebaseSignInAnonymously,
   signOut,
   onAuthStateChanged
@@ -20,6 +21,12 @@ export const useAuthStore = defineStore('auth', () => {
   // Initialize auth listener
   const initAuth = () => {
     return new Promise((resolve) => {
+      // Check for redirect result first
+      getRedirectResult(auth).catch((err) => {
+        console.error('Redirect result error:', err)
+        error.value = err.message
+      })
+
       onAuthStateChanged(auth, async (firebaseUser) => {
         if (firebaseUser) {
           // Fetch or create user document
@@ -81,10 +88,10 @@ export const useAuthStore = defineStore('auth', () => {
   const signInWithGoogle = async () => {
     error.value = null
     try {
-      await signInWithPopup(auth, googleProvider)
-      // Wait for the auth state listener to populate user data
-      await waitForAuthState()
-      return user.value
+      // Use redirect for better compatibility in sandboxed environments
+      await signInWithRedirect(auth, googleProvider)
+      // Note: This won't return - page will redirect to Google
+      // After redirect back, getRedirectResult in initAuth will handle it
     } catch (err) {
       error.value = err.message
       throw err
