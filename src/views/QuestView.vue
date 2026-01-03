@@ -3,11 +3,25 @@
     <div class="header">
       <div class="profile-bar">
         <div class="profile-info">
-          <span class="name">{{ gameStore.profile.name }}</span>
-          <span class="rank">Rank: {{ gameStore.globalRank }}</span>
+          <div class="profile-avatar" v-if="gameStore.profile.photoURL">
+            <img :src="gameStore.profile.photoURL" :alt="gameStore.profile.name" />
+          </div>
+          <div class="profile-avatar-placeholder" v-else>
+            {{ userInitials }}
+          </div>
+          <div class="profile-text">
+            <span class="name">{{ gameStore.profile.name }}</span>
+            <span class="rank">Rank: {{ gameStore.globalRank }}</span>
+          </div>
         </div>
-        <div class="streak-info">
+        <div class="header-actions">
+          <button @click="goToLeaderboard" class="leaderboard-btn" title="Leaderboard">
+            <span class="trophy-icon">🏆</span>
+          </button>
           <span class="streak-badge">🔥 {{ gameStore.streak }}</span>
+          <button @click="handleLogout" class="logout-btn" title="Logout">
+            <span class="logout-icon">⎋</span>
+          </button>
         </div>
       </div>
     </div>
@@ -89,15 +103,31 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const gameStore = useGameStore()
+const authStore = useAuthStore()
+
+const userInitials = computed(() => {
+  const name = gameStore.profile.name || ''
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
+})
 
 const goToDebrief = () => {
   router.push('/debrief')
+}
+
+const goToLeaderboard = () => {
+  router.push('/leaderboard')
+}
+
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
 }
 
 onMounted(() => {
@@ -135,6 +165,34 @@ onMounted(() => {
 
 .profile-info {
   display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4267B2;
+}
+
+.profile-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #4267B2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+  border: 2px solid #4267B2;
+}
+
+.profile-text {
+  display: flex;
   flex-direction: column;
   gap: 4px;
 }
@@ -147,6 +205,41 @@ onMounted(() => {
 
 .rank {
   font-size: 12px;
+  color: #888;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.leaderboard-btn,
+.logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leaderboard-btn:hover,
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.trophy-icon {
+  font-size: 18px;
+}
+
+.logout-icon {
+  font-size: 18px;
   color: #888;
 }
 
