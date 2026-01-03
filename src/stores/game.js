@@ -30,7 +30,7 @@ export const useGameStore = defineStore('game', () => {
   const currentWeek = ref(1)
   const viewingQuest = ref(null) // Quest being viewed (null = current quest)
   const streak = ref(0)
-  const totalMedals = ref(0)
+  const totalSkillTags = ref(0)
   const globalRank = ref(0)
 
   // Quest state
@@ -38,8 +38,8 @@ export const useGameStore = defineStore('game', () => {
   const hasCompletedCurrent = ref(false)
   const lastCompletionDate = ref(null)
 
-  // Medals and badges
-  const medals = ref([])
+  // SkillTags and badges
+  const skillTags = ref([])
   const badges = ref([])
 
   // Audio recording
@@ -65,19 +65,29 @@ export const useGameStore = defineStore('game', () => {
         const data = userDoc.data()
         currentWeek.value = data.currentWeek || 1
         streak.value = data.streak || 0
-        totalMedals.value = data.totalMedals || 0
+        totalSkillTags.value = data.totalSkillTags || data.totalMedals || 0
         globalRank.value = data.globalRank || 0
         lastCompletionDate.value = data.lastCompletionDate?.toDate() || null
         hasCompletedCurrent.value = data.hasCompletedCurrent || false
       }
 
-      // Fetch medals from subcollection
-      const medalsQuery = query(
-        collection(db, 'users', authStore.user.uid, 'medals'),
+      // Fetch skillTags from subcollection (try skillTags first, fall back to medals)
+      let tagsQuery = query(
+        collection(db, 'users', authStore.user.uid, 'skillTags'),
         orderBy('earnedAt', 'asc')
       )
-      const medalsSnapshot = await getDocs(medalsQuery)
-      medals.value = medalsSnapshot.docs.map(doc => ({
+      let tagsSnapshot = await getDocs(tagsQuery)
+
+      // Fallback to medals collection for backwards compatibility
+      if (tagsSnapshot.empty) {
+        tagsQuery = query(
+          collection(db, 'users', authStore.user.uid, 'medals'),
+          orderBy('earnedAt', 'asc')
+        )
+        tagsSnapshot = await getDocs(tagsQuery)
+      }
+
+      skillTags.value = tagsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         earnedAt: doc.data().earnedAt?.toDate() || null
