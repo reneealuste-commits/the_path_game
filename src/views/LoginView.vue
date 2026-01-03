@@ -48,8 +48,8 @@
       </div>
 
       <div class="phase-info">
-        <h3>Phase I: THE FOUNDATION</h3>
-        <p>15 weeks. 5 phases. One mission: Master leadership.</p>
+        <h3>The QUEST</h3>
+        <p>8 phases. One mission: Master Leadership.</p>
       </div>
     </div>
   </div>
