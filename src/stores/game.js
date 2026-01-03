@@ -219,11 +219,16 @@ export const useGameStore = defineStore('game', () => {
       // Update global rank
       globalRank.value += Math.floor(Math.random() * 10) + 5
 
-      // Check if this completes Phase 1
-      if (currentWeek.value === 15) {
+      // Check if this completes a phase
+      const quest = getQuestById(currentWeek.value)
+      const phaseQuests = getQuestsByPhase(quest.phase)
+      const lastQuestInPhase = phaseQuests[phaseQuests.length - 1]
+
+      if (currentWeek.value === lastQuestInPhase.id) {
+        const phase = PHASES.find(p => p.id === quest.phase)
         const badgeData = {
-          name: 'Phase 1: The Foundation - Complete',
-          phase: 1,
+          name: `Phase ${quest.phase}: ${phase.name} - Complete`,
+          phase: quest.phase,
           earnedAt: serverTimestamp()
         }
         const badgeRef = await addDoc(
@@ -289,6 +294,9 @@ export const useGameStore = defineStore('game', () => {
     // Computed
     currentQuest,
     allQuestsComplete,
+    allPhases,
+    allQuests,
+    completedQuests,
 
     // Actions
     initialize,
@@ -296,6 +304,7 @@ export const useGameStore = defineStore('game', () => {
     completeQuest,
     breakStreak,
     checkStreakIntegrity,
-    resetGame
+    resetGame,
+    goToQuest
   }
 })
