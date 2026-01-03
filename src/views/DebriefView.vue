@@ -51,6 +51,15 @@
             <button @click="toggleRecording" class="btn btn-retry">
               Try Again
             </button>
+            <div class="permission-help">
+              <p class="help-title">How to fix:</p>
+              <ol class="help-steps">
+                <li>Look for a 🎤 or 🔒 icon in your browser's address bar</li>
+                <li>Click it and select "Allow" for microphone access</li>
+                <li>Refresh the page if needed</li>
+                <li>Click "Try Again" above</li>
+              </ol>
+            </div>
           </div>
 
           <div v-if="hasRecording" class="audio-preview">
@@ -117,13 +126,34 @@ const toggleRecording = async () => {
   }
 }
 
+const checkMicrophonePermission = async () => {
+  try {
+    const result = await navigator.permissions.query({ name: 'microphone' })
+    return result.state // 'granted', 'denied', or 'prompt'
+  } catch (error) {
+    // Fallback if permissions API not supported
+    return 'prompt'
+  }
+}
+
 const startRecording = async () => {
   try {
     // Clear any previous errors
     permissionError.value = false
     errorMessage.value = ''
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    // Check permission first
+    const permissionState = await checkMicrophonePermission()
+    console.log('Microphone permission state:', permissionState)
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    })
+
     mediaRecorder = new MediaRecorder(stream)
     audioChunks = []
 
@@ -157,9 +187,11 @@ const startRecording = async () => {
     permissionError.value = true
 
     if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-      errorMessage.value = 'Microphone access denied. Please allow microphone access in your browser settings and try again.'
+      errorMessage.value = 'Microphone access was denied. Click "Try Again" and allow microphone access when your browser asks. Check your browser address bar for a blocked microphone icon 🎤'
     } else if (error.name === 'NotFoundError') {
       errorMessage.value = 'No microphone found. Please connect a microphone and try again.'
+    } else if (error.name === 'NotReadableError') {
+      errorMessage.value = 'Microphone is being used by another application. Please close other apps using your microphone and try again.'
     } else {
       errorMessage.value = 'Could not access microphone. Please check your browser permissions and try again.'
     }
@@ -492,6 +524,39 @@ onUnmounted(() => {
 .btn-retry:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
+}
+
+.permission-help {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.help-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.help-steps {
+  margin: 0;
+  padding-left: 20px;
+  color: #ccc;
+}
+
+.help-steps li {
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+
+.help-steps li:last-child {
+  margin-bottom: 0;
 }
 
 @keyframes pulse {
