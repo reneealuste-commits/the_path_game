@@ -47,6 +47,18 @@
           </div>
         </div>
 
+        <!-- Watch Jocko Video Option -->
+        <div v-if="hasStartedAudio" class="video-option">
+          <a
+            :href="gameStore.currentQuest.videoUrl"
+            target="_blank"
+            class="btn btn-video"
+          >
+            📺 WATCH JOCKO ON YOUTUBE
+          </a>
+          <p class="video-note">Prefer to hear the real Jocko? Watch his lesson on detachment.</p>
+        </div>
+
         <!-- Mission Brief -->
         <div v-if="audioCompleted" class="mission-section">
           <h3 class="mission-title">YOUR MISSION</h3>
@@ -104,7 +116,8 @@ const audioCompleted = ref(false)
 
 // Simulated audio player (replace with actual Web Audio API or Howler.js)
 let audioInterval = null
-let audioElement = null
+let speechSynthesis = null
+let currentUtterance = null
 
 const toggleAudio = () => {
   if (!hasStartedAudio.value) {
@@ -124,27 +137,117 @@ const toggleAudio = () => {
 const playAudio = () => {
   isPlaying.value = true
 
-  // Simulate audio playback (15 seconds)
-  // In production, use actual audio file
-  const duration = 15000 // 15 seconds
-  const startTime = Date.now()
+  // Use Web Speech API for text-to-speech
+  if ('speechSynthesis' in window) {
+    const speech = window.speechSynthesis
 
-  audioInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime
-    audioProgress.value = Math.min((elapsed / duration) * 100, 100)
+    // If already speaking from a pause, resume
+    if (currentUtterance && speech.paused) {
+      speech.resume()
+      resumeProgressTimer()
+      return
+    }
 
-    if (audioProgress.value >= 100) {
+    // Create new utterance
+    const lessonText = gameStore.currentQuest.lesson
+    currentUtterance = new SpeechSynthesisUtterance(lessonText)
+
+    // Try to get a deeper male voice (best approximation of Jocko)
+    const voices = speech.getVoices()
+    const preferredVoice = voices.find(voice =>
+      voice.name.includes('Male') ||
+      voice.name.includes('Daniel') ||
+      voice.name.includes('Google US English')
+    ) || voices.find(voice => voice.lang.includes('en')) || voices[0]
+
+    if (preferredVoice) {
+      currentUtterance.voice = preferredVoice
+    }
+
+    // Configure voice properties for deeper, more authoritative tone
+    currentUtterance.rate = 0.9 // Slightly slower
+    currentUtterance.pitch = 0.8 // Lower pitch
+    currentUtterance.volume = 1.0
+
+    // Estimate duration (rough: 150 words per minute)
+    const wordCount = lessonText.split(' ').length
+    const estimatedDuration = (wordCount / 150) * 60 * 1000 // in ms
+
+    // Progress tracking
+    let startTime = Date.now()
+    audioInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      audioProgress.value = Math.min((elapsed / estimatedDuration) * 100, 100)
+
+      if (audioProgress.value >= 100) {
+        clearInterval(audioInterval)
+      }
+    }, 100)
+
+    // Event handlers
+    currentUtterance.onend = () => {
       audioCompleted.value = true
       isPlaying.value = false
-      clearInterval(audioInterval)
+      audioProgress.value = 100
+      if (audioInterval) clearInterval(audioInterval)
     }
-  }, 100)
+
+    currentUtterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event)
+      isPlaying.value = false
+      if (audioInterval) clearInterval(audioInterval)
+    }
+
+    speech.speak(currentUtterance)
+  } else {
+    // Fallback: simulate audio if speech synthesis not available
+    const duration = 60000 // 60 seconds fallback
+    const startTime = Date.now()
+
+    audioInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      audioProgress.value = Math.min((elapsed / duration) * 100, 100)
+
+      if (audioProgress.value >= 100) {
+        audioCompleted.value = true
+        isPlaying.value = false
+        clearInterval(audioInterval)
+      }
+    }, 100)
+  }
+}
+
+const resumeProgressTimer = () => {
+  if (!audioInterval) {
+    // Resume progress tracking from where we left off
+    const remainingPercent = 100 - audioProgress.value
+    const lessonText = gameStore.currentQuest.lesson
+    const wordCount = lessonText.split(' ').length
+    const estimatedDuration = (wordCount / 150) * 60 * 1000
+    const remainingTime = (remainingPercent / 100) * estimatedDuration
+    const startTime = Date.now()
+
+    audioInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      audioProgress.value = Math.min(audioProgress.value + (elapsed / remainingTime) * remainingPercent, 100)
+
+      if (audioProgress.value >= 100) {
+        clearInterval(audioInterval)
+      }
+    }, 100)
+  }
 }
 
 const pauseAudio = () => {
   isPlaying.value = false
+
+  if ('speechSynthesis' in window && currentUtterance) {
+    window.speechSynthesis.pause()
+  }
+
   if (audioInterval) {
     clearInterval(audioInterval)
+    audioInterval = null
   }
 }
 
@@ -162,6 +265,11 @@ onMounted(() => {
 onUnmounted(() => {
   if (audioInterval) {
     clearInterval(audioInterval)
+  }
+
+  // Stop and clean up speech synthesis
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel()
   }
 })
 </script>
