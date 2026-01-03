@@ -119,7 +119,7 @@ export const useGameStore = defineStore('game', () => {
       await updateDoc(doc(db, 'users', authStore.user.uid), {
         currentWeek: currentWeek.value,
         streak: streak.value,
-        totalMedals: totalMedals.value,
+        totalSkillTags: totalSkillTags.value,
         globalRank: globalRank.value,
         lastCompletionDate: lastCompletionDate.value,
         hasCompletedCurrent: hasCompletedCurrent.value,
@@ -209,7 +209,7 @@ export const useGameStore = defineStore('game', () => {
         userId: authStore.user.uid,
         weekId,
         weekStart: serverTimestamp(),
-        medalCount: totalMedals.value,
+        skillTagCount: totalSkillTags.value,
         streakContribution: streak.value,
         displayName: authStore.user.displayName,
         photoURL: authStore.user.photoURL
