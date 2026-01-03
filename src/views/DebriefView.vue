@@ -298,7 +298,7 @@ onUnmounted(() => {
 <style scoped>
 .debrief-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: #000000;
 }
 
 .header {
@@ -314,7 +314,7 @@ onUnmounted(() => {
 .back-button {
   background: none;
   border: none;
-  color: #ffd700;
+  color: #4267B2;
   font-size: 16px;
   cursor: pointer;
   padding: 8px;
@@ -349,7 +349,7 @@ onUnmounted(() => {
 .instruction h3 {
   font-size: 24px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
   margin: 0 0 12px 0;
 }
 

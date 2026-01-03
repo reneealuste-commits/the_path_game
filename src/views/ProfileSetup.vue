@@ -162,13 +162,14 @@ const handleSubmit = () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #000;
+  background: #4267B2;
+  color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(66, 103, 178, 0.4);
+  background: #3B5998;
 }
 
 .btn-primary:disabled {
@@ -179,14 +180,14 @@ const handleSubmit = () => {
 .phase-info {
   text-align: center;
   padding: 24px;
-  background: rgba(255, 215, 0, 0.05);
+  background: rgba(67, 103, 178, 0.05);
   border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(67, 103, 178, 0.2);
 }
 
 .phase-info h3 {
   font-size: 18px;
-  color: #ffd700;
+  color: #4267B2;
   margin: 0 0 8px 0;
   letter-spacing: 2px;
 }
