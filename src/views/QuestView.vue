@@ -146,23 +146,23 @@
           <button
             @click="goToDebrief"
             class="btn btn-primary btn-large"
-            :disabled="gameStore.hasCompletedCurrent || gameStore.allQuestsComplete || isViewingCompleted"
+            :disabled="gameStore.hasCompletedCurrent || gameStore.allQuestsComplete || gameStore.isViewingCompleted"
           >
-            <span v-if="isViewingCompleted">👁 VIEWING COMPLETED QUEST</span>
+            <span v-if="gameStore.isViewingCompleted">👁 VIEWING COMPLETED QUEST</span>
             <span v-else-if="!gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete">🎯 BEGIN MISSION</span>
             <span v-else-if="gameStore.allQuestsComplete">✓ ALL QUESTS COMPLETE</span>
             <span v-else>✓ QUEST COMPLETE</span>
           </button>
 
           <button
-            v-if="isViewingCompleted"
+            v-if="gameStore.isViewingCompleted"
             @click="returnToCurrent"
             class="btn btn-secondary btn-return"
           >
             ← Return to Current Quest
           </button>
 
-          <p v-if="gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete && !isViewingCompleted" class="completed-message">
+          <p v-if="gameStore.hasCompletedCurrent && !gameStore.allQuestsComplete && !gameStore.isViewingCompleted" class="completed-message">
             Quest completed! Continue to next quest.
           </p>
           <p v-if="gameStore.allQuestsComplete" class="completed-message">
@@ -203,7 +203,6 @@ const authStore = useAuthStore()
 
 const showQuestMenu = ref(false)
 const expandedPhases = ref([])
-const viewingQuestId = ref(null)
 
 const userInitials = computed(() => {
   const name = gameStore.profile.name || ''
@@ -214,12 +213,8 @@ const progressPercent = computed(() => {
   return Math.min(((gameStore.currentWeek - 1) / 100) * 100, 100)
 })
 
-const isViewingCompleted = computed(() => {
-  return viewingQuestId.value !== null && viewingQuestId.value !== gameStore.currentWeek
-})
-
 const isCurrentPhase = (phaseId) => {
-  return gameStore.currentQuest?.phase === phaseId
+  return gameStore.actualQuest?.phase === phaseId
 }
 
 const isPhaseCompleted = (phaseId) => {
@@ -240,10 +235,10 @@ const getQuestsForPhase = (phaseId) => {
 
 const toggleQuestMenu = () => {
   showQuestMenu.value = !showQuestMenu.value
-  if (showQuestMenu.value && gameStore.currentQuest) {
+  if (showQuestMenu.value && gameStore.actualQuest) {
     // Auto-expand current phase
-    if (!expandedPhases.value.includes(gameStore.currentQuest.phase)) {
-      expandedPhases.value.push(gameStore.currentQuest.phase)
+    if (!expandedPhases.value.includes(gameStore.actualQuest.phase)) {
+      expandedPhases.value.push(gameStore.actualQuest.phase)
     }
   }
 }
@@ -258,20 +253,13 @@ const togglePhase = (phaseId) => {
 
 const selectQuest = (quest) => {
   if (quest.id <= gameStore.currentWeek) {
-    if (quest.id === gameStore.currentWeek) {
-      viewingQuestId.value = null
-    } else {
-      viewingQuestId.value = quest.id
-      gameStore.goToQuest(quest.id)
-    }
+    gameStore.goToQuest(quest.id)
     showQuestMenu.value = false
   }
 }
 
 const returnToCurrent = () => {
-  viewingQuestId.value = null
-  // Reset to actual current quest
-  gameStore.goToQuest(gameStore.currentWeek)
+  gameStore.returnToCurrent()
 }
 
 const goToDebrief = () => {
