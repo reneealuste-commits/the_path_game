@@ -22,6 +22,13 @@ export const useAuthStore = defineStore('auth', () => {
   // Initialize auth listener
   const initAuth = () => {
     return new Promise((resolve) => {
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.warn('Auth initialization timeout - setting loading to false')
+        loading.value = false
+        resolve(null)
+      }, 5000) // 5 second timeout
+
       // Check for redirect result first
       getRedirectResult(auth).catch((err) => {
         console.error('Redirect result error:', err)
@@ -29,47 +36,56 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-          // Fetch or create user document
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-          if (userDoc.exists()) {
-            user.value = { uid: firebaseUser.uid, ...userDoc.data() }
-            // Update last login
-            await setDoc(doc(db, 'users', firebaseUser.uid), {
-              lastLoginAt: serverTimestamp()
-            }, { merge: true })
-          } else {
-            // Create new user document
-            const isAnonymous = firebaseUser.isAnonymous
-            const newUser = {
-              uid: firebaseUser.uid,
-              displayName: firebaseUser.displayName || (isAnonymous ? 'Anonymous User' : 'User'),
-              email: firebaseUser.email || null,
-              photoURL: firebaseUser.photoURL || null,
-              provider: firebaseUser.providerData[0]?.providerId || (isAnonymous ? 'anonymous' : 'unknown'),
-              createdAt: serverTimestamp(),
-              lastLoginAt: serverTimestamp(),
-              currentWeek: 1,
-              streak: 0,
-              totalMedals: 0,
-              globalRank: 0,
-              lastCompletionDate: null,
-              hasCompletedCurrent: false
+        clearTimeout(timeout) // Clear timeout if auth state changes
+        try {
+          if (firebaseUser) {
+            // Fetch or create user document
+            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+            if (userDoc.exists()) {
+              user.value = { uid: firebaseUser.uid, ...userDoc.data() }
+              // Update last login
+              await setDoc(doc(db, 'users', firebaseUser.uid), {
+                lastLoginAt: serverTimestamp()
+              }, { merge: true })
+            } else {
+              // Create new user document
+              const isAnonymous = firebaseUser.isAnonymous
+              const newUser = {
+                uid: firebaseUser.uid,
+                displayName: firebaseUser.displayName || (isAnonymous ? 'Anonymous User' : 'User'),
+                email: firebaseUser.email || null,
+                photoURL: firebaseUser.photoURL || null,
+                provider: firebaseUser.providerData[0]?.providerId || (isAnonymous ? 'anonymous' : 'unknown'),
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp(),
+                currentWeek: 1,
+                streak: 0,
+                totalMedals: 0,
+                globalRank: 0,
+                lastCompletionDate: null,
+                hasCompletedCurrent: false
+              }
+              await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
+              user.value = { uid: firebaseUser.uid, ...newUser }
             }
-            await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
-            user.value = { uid: firebaseUser.uid, ...newUser }
-          }
 
-          // Resolve any pending auth state promise
-          if (authStateResolver) {
-            authStateResolver(user.value)
-            authStateResolver = null
+            // Resolve any pending auth state promise
+            if (authStateResolver) {
+              authStateResolver(user.value)
+              authStateResolver = null
+            }
+          } else {
+            user.value = null
           }
-        } else {
+        } catch (err) {
+          console.error('Error in auth state handler:', err)
+          error.value = err.message
+          // Still set user to null on error to allow app to load
           user.value = null
+        } finally {
+          loading.value = false
+          resolve(user.value)
         }
-        loading.value = false
-        resolve(user.value)
       })
     })
   }
