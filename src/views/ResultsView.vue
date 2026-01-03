@@ -482,7 +482,7 @@ onMounted(() => {
 }
 
 .improve-feedback .feedback-icon {
-  color: #ffd700;
+  color: #4267B2;
 }
 
 .feedback-title {
@@ -517,7 +517,7 @@ onMounted(() => {
   content: "•";
   position: absolute;
   left: 8px;
-  color: #ffd700;
+  color: #4267B2;
   font-weight: 900;
 }
 

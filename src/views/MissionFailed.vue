@@ -84,7 +84,7 @@ onMounted(() => {
 <style scoped>
 .mission-failed {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a0000 0%, #0a0a0a 100%);
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
