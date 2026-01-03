@@ -81,6 +81,8 @@ const hasRecording = ref(false)
 const recordingDuration = ref(0)
 const isPlaying = ref(false)
 const isSubmitting = ref(false)
+const permissionError = ref(false)
+const errorMessage = ref('')
 
 let recordingInterval = null
 let mediaRecorder = null
@@ -108,6 +110,10 @@ const toggleRecording = async () => {
 
 const startRecording = async () => {
   try {
+    // Clear any previous errors
+    permissionError.value = false
+    errorMessage.value = ''
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     mediaRecorder = new MediaRecorder(stream)
     audioChunks = []
@@ -139,7 +145,15 @@ const startRecording = async () => {
     }, 1000)
   } catch (error) {
     console.error('Error accessing microphone:', error)
-    alert('Could not access microphone. Please grant permission.')
+    permissionError.value = true
+
+    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      errorMessage.value = 'Microphone access denied. Please allow microphone access in your browser settings and try again.'
+    } else if (error.name === 'NotFoundError') {
+      errorMessage.value = 'No microphone found. Please connect a microphone and try again.'
+    } else {
+      errorMessage.value = 'Could not access microphone. Please check your browser permissions and try again.'
+    }
   }
 }
 
