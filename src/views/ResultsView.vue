@@ -381,7 +381,7 @@ onMounted(() => {
 .rank-number {
   font-size: 36px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
 }
 
 .streak-label,
@@ -405,8 +405,8 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #000;
+  background: #4267B2;
+  color: #fff;
 }
 
 .btn-large {
@@ -416,7 +416,8 @@ onMounted(() => {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(66, 103, 178, 0.4);
+  background: #3B5998;
 }
 
 .motivational-message {
@@ -461,7 +462,7 @@ onMounted(() => {
 }
 
 .improve-feedback {
-  border-left: 4px solid #ffd700;
+  border-left: 4px solid #4267B2;
 }
 
 .feedback-header {
