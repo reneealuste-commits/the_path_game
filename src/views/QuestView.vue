@@ -14,9 +14,9 @@
 
     <div class="container">
       <!-- Quest Unlocked Banner -->
-      <div v-if="!hasStartedAudio" class="unlock-banner">
-        <h2 class="unlock-title">Quest Unlocked</h2>
-        <div class="quest-day">Day {{ gameStore.currentDay }} / {{ gameStore.currentQuest.duration }}</div>
+      <div class="unlock-banner">
+        <h2 class="unlock-title">Quest {{ gameStore.currentWeek }} / 15</h2>
+        <div class="quest-day">{{ gameStore.currentQuest.phase }}</div>
       </div>
 
       <!-- Quest Content -->
