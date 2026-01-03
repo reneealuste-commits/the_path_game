@@ -187,6 +187,7 @@ onMounted(() => {
   if (medals.length > 0) {
     const lastMedal = medals[medals.length - 1]
     evaluation.value = lastMedal.evaluation
+    feedback.value = lastMedal.feedback || null
   }
 
   // Trigger confetti after a short delay
@@ -434,6 +435,89 @@ onMounted(() => {
 .motivational-message .author {
   font-size: 14px;
   color: #666;
+}
+
+.feedback-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 32px 24px;
+  margin-bottom: 24px;
+}
+
+.feedback-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.feedback-card:last-child {
+  margin-bottom: 0;
+}
+
+.success-feedback {
+  border-left: 4px solid #44ff44;
+}
+
+.improve-feedback {
+  border-left: 4px solid #ffd700;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.feedback-icon {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.success-feedback .feedback-icon {
+  color: #44ff44;
+}
+
+.improve-feedback .feedback-icon {
+  color: #ffd700;
+}
+
+.feedback-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.feedback-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feedback-list li {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #e0e0e0;
+  margin-bottom: 12px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.feedback-list li:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-list li::before {
+  content: "•";
+  position: absolute;
+  left: 8px;
+  color: #ffd700;
+  font-weight: 900;
 }
 
 @keyframes slideUp {
