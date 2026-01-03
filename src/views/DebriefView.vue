@@ -33,15 +33,24 @@
           </div>
 
           <div class="recorder-status">
-            <p v-if="!isRecording && !hasRecording" class="status-text">
+            <p v-if="!isRecording && !hasRecording && !permissionError" class="status-text">
               Tap to start recording
             </p>
             <p v-else-if="isRecording" class="status-text recording-text">
               Recording... Tap to stop
             </p>
-            <p v-else class="status-text">
+            <p v-else-if="hasRecording" class="status-text">
               Recording complete
             </p>
+          </div>
+
+          <!-- Permission Error Message -->
+          <div v-if="permissionError" class="error-message">
+            <div class="error-icon">⚠️</div>
+            <p class="error-text">{{ errorMessage }}</p>
+            <button @click="toggleRecording" class="btn btn-retry">
+              Try Again
+            </button>
           </div>
 
           <div v-if="hasRecording" class="audio-preview">
