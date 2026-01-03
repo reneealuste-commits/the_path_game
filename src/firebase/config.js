@@ -1,6 +1,5 @@
-import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+// Firebase loaded via CDN in index.html
+// Using firebase.initializeApp() from the global firebase object
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,8 +11,9 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
-const app = initializeApp(firebaseConfig)
+// Initialize Firebase using the global firebase object from CDN
+const app = firebase.initializeApp(firebaseConfig)
 
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const googleProvider = new GoogleAuthProvider()
+export const auth = firebase.auth()
+export const db = firebase.firestore()
+export const googleProvider = new firebase.auth.GoogleAuthProvider()
