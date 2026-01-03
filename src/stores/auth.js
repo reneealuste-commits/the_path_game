@@ -13,6 +13,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const loading = ref(true)
   const error = ref(null)
+  let authStateResolver = null
 
   const isAuthenticated = computed(() => !!user.value)
 
@@ -50,6 +51,12 @@ export const useAuthStore = defineStore('auth', () => {
             await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
             user.value = { uid: firebaseUser.uid, ...newUser }
           }
+
+          // Resolve any pending auth state promise
+          if (authStateResolver) {
+            authStateResolver(user.value)
+            authStateResolver = null
+          }
         } else {
           user.value = null
         }
@@ -59,12 +66,25 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
+  // Wait for user state to be populated
+  const waitForAuthState = () => {
+    return new Promise((resolve) => {
+      if (user.value) {
+        resolve(user.value)
+      } else {
+        authStateResolver = resolve
+      }
+    })
+  }
+
   // Sign in with Google
   const signInWithGoogle = async () => {
     error.value = null
     try {
-      const result = await signInWithPopup(auth, googleProvider)
-      return result.user
+      await signInWithPopup(auth, googleProvider)
+      // Wait for the auth state listener to populate user data
+      await waitForAuthState()
+      return user.value
     } catch (err) {
       error.value = err.message
       throw err
@@ -75,8 +95,10 @@ export const useAuthStore = defineStore('auth', () => {
   const signInAnonymously = async () => {
     error.value = null
     try {
-      const result = await firebaseSignInAnonymously(auth)
-      return result.user
+      await firebaseSignInAnonymously(auth)
+      // Wait for the auth state listener to populate user data
+      await waitForAuthState()
+      return user.value
     } catch (err) {
       error.value = err.message
       throw err
