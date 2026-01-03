@@ -13,12 +13,18 @@ app.use(express.json())
 // Initialize Google Cloud Speech client
 // Requires GOOGLE_APPLICATION_CREDENTIALS environment variable
 let speechClient = null
-try {
-  speechClient = new SpeechClient()
-  console.log('✓ Google Cloud Speech-to-Text initialized')
-} catch (error) {
-  console.warn('⚠ Google Cloud Speech-to-Text not configured. Using fallback mode.')
-  console.warn('To enable: Set GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json')
+const hasGoogleCredentials = !!process.env.GOOGLE_APPLICATION_CREDENTIALS
+
+if (hasGoogleCredentials) {
+  try {
+    speechClient = new SpeechClient()
+    console.log('✓ Google Cloud Speech-to-Text initialized')
+  } catch (error) {
+    console.warn('⚠ Google Cloud Speech-to-Text failed to initialize')
+    speechClient = null
+  }
+} else {
+  console.log('⚡ Fast mode: No Google credentials, using instant fallback')
 }
 
 // Transcribe audio using Google Cloud Speech-to-Text
@@ -161,25 +167,22 @@ app.post('/api/evaluate', upload.single('audio'), async (req, res) => {
   try {
     const questTitle = req.body.questTitle || 'Unknown Quest'
     let transcription = ''
-    let usedFallback = false
+    let usedFallback = true
 
-    // Try to transcribe with Google Cloud Speech-to-Text
+    // Only try Google transcription if we have a working client
     if (speechClient && audioFile) {
       try {
         console.log('Transcribing audio with Google Cloud Speech-to-Text...')
         transcription = await transcribeAudio(audioFile)
         console.log('Transcription:', transcription)
+        usedFallback = false
       } catch (error) {
         console.error('Transcription error:', error.message)
-        usedFallback = true
       }
-    } else {
-      usedFallback = true
     }
 
-    // Fallback: Use dummy transcription if Speech-to-Text unavailable
+    // Fallback: Use dummy transcription (instant response)
     if (usedFallback || !transcription) {
-      console.log('Using fallback mode (no real transcription)')
       transcription = "I practiced detachment today in a stressful meeting. When the client started criticizing our work, I felt defensive at first. But then I stepped back mentally, like I was watching from above. I observed the situation objectively. I realized the client had valid concerns. I was able to respond calmly and we found a solution together."
     }
 
