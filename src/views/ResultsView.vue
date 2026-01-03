@@ -201,7 +201,7 @@ onMounted(() => {
 <style scoped>
 .results-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;

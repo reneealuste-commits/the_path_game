@@ -459,8 +459,8 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #000;
+  background: #4267B2;
+  color: #fff;
 }
 
 .btn-secondary {
@@ -485,7 +485,8 @@ onUnmounted(() => {
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(66, 103, 178, 0.4);
+  background: #3B5998;
 }
 
 .btn:disabled {
@@ -537,7 +538,7 @@ onUnmounted(() => {
 .help-title {
   font-size: 13px;
   font-weight: 700;
-  color: #ffd700;
+  color: #4267B2;
   margin: 0 0 12px 0;
   text-transform: uppercase;
   letter-spacing: 1px;
