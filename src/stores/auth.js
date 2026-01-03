@@ -1,14 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import {
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  signInAnonymously as firebaseSignInAnonymously,
-  signOut,
-  onAuthStateChanged
-} from 'firebase/auth'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db, googleProvider } from '../firebase/config'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -30,22 +21,22 @@ export const useAuthStore = defineStore('auth', () => {
       }, 5000) // 5 second timeout
 
       // Check for redirect result first
-      getRedirectResult(auth).catch((err) => {
+      auth.getRedirectResult().catch((err) => {
         console.error('Redirect result error:', err)
         error.value = err.message
       })
 
-      onAuthStateChanged(auth, async (firebaseUser) => {
+      auth.onAuthStateChanged(async (firebaseUser) => {
         clearTimeout(timeout) // Clear timeout if auth state changes
         try {
           if (firebaseUser) {
             // Fetch or create user document
-            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-            if (userDoc.exists()) {
+            const userDoc = await db.collection('users').doc(firebaseUser.uid).get()
+            if (userDoc.exists) {
               user.value = { uid: firebaseUser.uid, ...userDoc.data() }
               // Update last login
-              await setDoc(doc(db, 'users', firebaseUser.uid), {
-                lastLoginAt: serverTimestamp()
+              await db.collection('users').doc(firebaseUser.uid).set({
+                lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
               }, { merge: true })
             } else {
               // Create new user document
@@ -56,8 +47,8 @@ export const useAuthStore = defineStore('auth', () => {
                 email: firebaseUser.email || null,
                 photoURL: firebaseUser.photoURL || null,
                 provider: firebaseUser.providerData[0]?.providerId || (isAnonymous ? 'anonymous' : 'unknown'),
-                createdAt: serverTimestamp(),
-                lastLoginAt: serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
                 currentWeek: 1,
                 streak: 0,
                 totalMedals: 0,
@@ -65,7 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
                 lastCompletionDate: null,
                 hasCompletedCurrent: false
               }
-              await setDoc(doc(db, 'users', firebaseUser.uid), newUser)
+              await db.collection('users').doc(firebaseUser.uid).set(newUser)
               user.value = { uid: firebaseUser.uid, ...newUser }
             }
 
@@ -106,7 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       // Try popup first (works in most browsers)
-      await signInWithPopup(auth, googleProvider)
+      await auth.signInWithPopup(googleProvider)
       // Wait for the auth state listener to populate user data
       await waitForAuthState()
       return user.value
@@ -117,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
           err.code === 'auth/popup-closed-by-user' ||
           err.code === 'auth/cancelled-popup-request') {
         try {
-          await signInWithRedirect(auth, googleProvider)
+          await auth.signInWithRedirect(googleProvider)
           // Page will redirect, won't reach here
         } catch (redirectErr) {
           error.value = redirectErr.message
@@ -134,7 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
   const signInAnonymously = async () => {
     error.value = null
     try {
-      await firebaseSignInAnonymously(auth)
+      await auth.signInAnonymously()
       // Wait for the auth state listener to populate user data
       await waitForAuthState()
       return user.value
@@ -146,7 +137,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Sign out
   const logout = async () => {
-    await signOut(auth)
+    await auth.signOut()
     user.value = null
   }
 
