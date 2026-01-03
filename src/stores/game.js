@@ -229,8 +229,8 @@ export const useGameStore = defineStore('game', () => {
     // Update streak
     streak.value += 1
 
-    // Add medal to Firestore subcollection
-    const medalData = {
+    // Add skillTag to Firestore subcollection
+    const skillTagData = {
       name: currentQuest.value.title,
       questNumber: currentWeek.value,
       earnedAt: serverTimestamp(),
@@ -239,12 +239,12 @@ export const useGameStore = defineStore('game', () => {
     }
 
     try {
-      const medalRef = await addDoc(
-        collection(db, 'users', authStore.user.uid, 'medals'),
-        medalData
+      const tagRef = await addDoc(
+        collection(db, 'users', authStore.user.uid, 'skillTags'),
+        skillTagData
       )
-      medals.value.push({ id: medalRef.id, ...medalData, earnedAt: new Date() })
-      totalMedals.value += 1
+      skillTags.value.push({ id: tagRef.id, ...skillTagData, earnedAt: new Date() })
+      totalSkillTags.value += 1
 
       // Update global rank
       globalRank.value += Math.floor(Math.random() * 10) + 5
@@ -297,9 +297,9 @@ export const useGameStore = defineStore('game', () => {
   const resetGame = async () => {
     currentWeek.value = 1
     streak.value = 0
-    totalMedals.value = 0
+    totalSkillTags.value = 0
     globalRank.value = 0
-    medals.value = []
+    skillTags.value = []
     badges.value = []
     questStartTime.value = null
     lastCompletionDate.value = null
@@ -313,9 +313,9 @@ export const useGameStore = defineStore('game', () => {
     currentWeek,
     viewingQuest,
     streak,
-    totalMedals,
+    totalSkillTags,
     globalRank,
-    medals,
+    skillTags,
     badges,
     questStartTime,
     hasCompletedCurrent,
