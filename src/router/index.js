@@ -1,12 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useGameStore } from '../stores/game'
+import { useAuthStore } from '../stores/auth'
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('../views/ProfileSetup.vue'),
-    meta: { requiresAuth: false }
+    redirect: '/login'
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue'),
+    meta: { requiresAuth: false, guestOnly: true }
   },
   {
     path: '/quest',
@@ -31,6 +35,12 @@ const routes = [
     name: 'MissionFailed',
     component: () => import('../views/MissionFailed.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/leaderboard',
+    name: 'Leaderboard',
+    component: () => import('../views/LeaderboardView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -39,14 +49,26 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  const gameStore = useGameStore()
+// Navigation guard
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
 
-  if (to.meta.requiresAuth && !gameStore.profile.name) {
-    next('/')
-  } else if (to.path === '/' && gameStore.profile.name) {
+  // Wait for auth to initialize if still loading
+  if (authStore.loading) {
+    await authStore.initAuth()
+  }
+
+  const isAuthenticated = authStore.isAuthenticated
+
+  // Redirect to login if route requires auth and user not authenticated
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+  }
+  // Redirect to quest if authenticated user tries to access guest-only routes
+  else if (to.meta.guestOnly && isAuthenticated) {
     next('/quest')
-  } else {
+  }
+  else {
     next()
   }
 })
