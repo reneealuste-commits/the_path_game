@@ -367,33 +367,17 @@ export const useGameStore = defineStore('game', () => {
 
   // Get current quest
   const currentQuest = computed(() => {
-    return QUESTS[`week${currentWeek.value}`]
+    return QUESTS[`week${currentWeek.value}`] || QUESTS.week1
   })
 
-  // Check if current week is unlocked
-  const isWeekUnlocked = computed(() => {
-    if (!questStartTime.value) return false
-
-    const weeksSinceStart = Math.floor(
-      (Date.now() - questStartTime.value) / (7 * 24 * 60 * 60 * 1000)
-    )
-
-    return weeksSinceStart >= currentWeek.value - 1
-  })
-
-  // Time until next week unlocks
-  const timeUntilNextWeek = computed(() => {
-    if (!questStartTime.value) return 0
-
-    const nextWeekTime = questStartTime.value + (currentWeek.value * 7 * 24 * 60 * 60 * 1000)
-    const remaining = nextWeekTime - Date.now()
-
-    return Math.max(0, remaining)
+  // Check if all quests are complete
+  const allQuestsComplete = computed(() => {
+    return currentWeek.value > 15
   })
 
   // Check if streak is broken
   const checkStreakIntegrity = () => {
-    if (!lastCompletionDate.value) return
+    if (!lastCompletionDate.value) return false
 
     const lastDate = new Date(lastCompletionDate.value)
     const today = new Date()
@@ -407,11 +391,6 @@ export const useGameStore = defineStore('game', () => {
       return true
     }
 
-    // Check if already completed today
-    if (daysDiff === 0) {
-      hasCompletedToday.value = true
-    }
-
     return false
   }
 
@@ -422,13 +401,11 @@ export const useGameStore = defineStore('game', () => {
 
     // Update streak
     streak.value += 1
-    currentDay.value += 1
 
     // Award medal
     const medal = {
       name: currentQuest.value.title,
-      day: currentDay.value,
-      week: currentWeek.value,
+      questNumber: currentWeek.value,
       earnedAt: Date.now(),
       evaluation,
       feedback
@@ -436,35 +413,34 @@ export const useGameStore = defineStore('game', () => {
     medals.value.push(medal)
     totalMedals.value += 1
 
-    // Update global rank (simple increment for now)
+    // Update global rank
     globalRank.value += Math.floor(Math.random() * 10) + 5
 
-    // Check if week is complete
-    if (currentDay.value > currentQuest.value.duration) {
-      // Award badge
+    // Check if this completes Phase 1
+    if (currentWeek.value === 15) {
+      // Award final badge for completing Phase 1
       badges.value.push({
-        name: currentQuest.value.title,
-        week: currentWeek.value,
+        name: 'Phase 1: The Foundation - Complete',
+        phase: 1,
         earnedAt: Date.now()
       })
-
-      // Move to next week
-      currentWeek.value += 1
-      currentDay.value = 1
     }
 
-    // Mark as completed today
+    // Move to next quest
+    currentWeek.value += 1
+    hasCompletedCurrent.value = false
+
+    // Mark as completed
     lastCompletionDate.value = Date.now()
-    hasCompletedToday.value = true
 
     save()
   }
 
-  // Break streak - reset to day 1
+  // Break streak - reset progress
   const breakStreak = () => {
     streak.value = 0
-    currentDay.value = 1
-    hasCompletedToday.value = false
+    currentWeek.value = 1
+    hasCompletedCurrent.value = false
     save()
   }
 
@@ -473,7 +449,6 @@ export const useGameStore = defineStore('game', () => {
     localStorage.removeItem('the-path-game')
     profile.value = { name: '', createdAt: null }
     currentWeek.value = 1
-    currentDay.value = 1
     streak.value = 0
     totalMedals.value = 0
     globalRank.value = 0
@@ -481,28 +456,26 @@ export const useGameStore = defineStore('game', () => {
     badges.value = []
     questStartTime.value = null
     lastCompletionDate.value = null
-    hasCompletedToday.value = false
+    hasCompletedCurrent.value = false
   }
 
   return {
     // State
     profile,
     currentWeek,
-    currentDay,
     streak,
     totalMedals,
     globalRank,
     medals,
     badges,
     questStartTime,
-    hasCompletedToday,
+    hasCompletedCurrent,
     lastCompletionDate,
     currentRecording,
 
     // Computed
     currentQuest,
-    isWeekUnlocked,
-    timeUntilNextWeek,
+    allQuestsComplete,
 
     // Actions
     initialize,
