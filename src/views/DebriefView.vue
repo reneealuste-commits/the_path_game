@@ -436,6 +436,39 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
+.error-message {
+  margin-top: 24px;
+  padding: 24px;
+  background: rgba(255, 68, 68, 0.1);
+  border: 2px solid rgba(255, 68, 68, 0.3);
+  border-radius: 12px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.error-text {
+  font-size: 14px;
+  color: #ff8888;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.btn-retry {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-retry:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
