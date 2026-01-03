@@ -1,14 +1,27 @@
 <template>
   <div class="results-view">
-    <div class="container">
-      <!-- Confetti trigger -->
-      <div ref="confettiCanvas" class="confetti-container"></div>
+    <!-- SkillTag Animation -->
+    <SkillTagAnimation
+      :show="showTagAnimation"
+      :tagTitle="earnedTagTitle"
+      :tagNumber="earnedTagNumber"
+      @close="closeTagAnimation"
+    />
 
+    <div class="container" v-if="!showTagAnimation">
       <!-- Success Animation -->
       <div v-if="showResults" class="results-content">
         <div class="success-badge">
-          <div class="medal">🏅</div>
-          <h2 class="success-title">MISSION COMPLETE</h2>
+          <div class="dogtag-display">
+            <div class="mini-dogtag">
+              <div class="tag-hole"></div>
+              <div class="tag-content">
+                <span class="tag-number">#{{ earnedTagNumber }}</span>
+                <span class="tag-title">{{ earnedTagTitle }}</span>
+              </div>
+            </div>
+          </div>
+          <h2 class="success-title">SKILL TAG EARNED</h2>
         </div>
 
         <!-- Evaluation Scores -->
@@ -82,13 +95,6 @@
           </div>
         </div>
 
-        <!-- Badge Award -->
-        <div class="badge-award">
-          <div class="badge-icon">🎖️</div>
-          <div class="badge-name">{{ gameStore.currentQuest.title }}</div>
-          <div class="badge-subtitle">Quest {{ gameStore.currentWeek - 1 }} Complete</div>
-        </div>
-
         <!-- Streak Info -->
         <div class="streak-section">
           <div class="streak-card">
@@ -98,9 +104,9 @@
           </div>
 
           <div class="rank-card">
-            <div class="rank-icon">📈</div>
-            <div class="rank-number">{{ gameStore.globalRank }}</div>
-            <div class="rank-label">Global Rank</div>
+            <div class="rank-icon">🏷️</div>
+            <div class="rank-number">{{ gameStore.totalSkillTags }}/100</div>
+            <div class="rank-label">Skill Tags</div>
           </div>
         </div>
 
@@ -122,15 +128,20 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '../stores/game'
+import SkillTagAnimation from '../components/SkillTagAnimation.vue'
 import confetti from 'canvas-confetti'
 
 const router = useRouter()
 const gameStore = useGameStore()
 
 const showResults = ref(false)
-const confettiCanvas = ref(null)
+const showTagAnimation = ref(true)
 
-// Get last medal evaluation
+// Get earned tag info
+const earnedTagTitle = ref('')
+const earnedTagNumber = ref(0)
+
+// Get last skillTag evaluation
 const evaluation = ref({
   discipline: 0,
   strategy: 0,
@@ -138,7 +149,7 @@ const evaluation = ref({
   overall: 0
 })
 
-// Get feedback from last medal
+// Get feedback from last skillTag
 const feedback = ref(null)
 
 const getScoreColor = (score) => {
@@ -172,9 +183,17 @@ const triggerConfetti = () => {
         x: randomInRange(0.1, 0.9),
         y: Math.random() - 0.2
       },
-      colors: ['#ffd700', '#ffed4e', '#ffffff', '#ff8844']
+      colors: ['#b8b8b8', '#8a8a8a', '#4267B2', '#ffffff']
     })
   }, 250)
+}
+
+const closeTagAnimation = () => {
+  showTagAnimation.value = false
+  setTimeout(() => {
+    showResults.value = true
+    triggerConfetti()
+  }, 300)
 }
 
 const continueToQuest = () => {
@@ -182,19 +201,19 @@ const continueToQuest = () => {
 }
 
 onMounted(() => {
-  // Get last medal
-  const medals = gameStore.medals
-  if (medals.length > 0) {
-    const lastMedal = medals[medals.length - 1]
-    evaluation.value = lastMedal.evaluation
-    feedback.value = lastMedal.feedback || null
+  // Get last skillTag
+  const skillTags = gameStore.skillTags
+  if (skillTags.length > 0) {
+    const lastTag = skillTags[skillTags.length - 1]
+    evaluation.value = lastTag.evaluation
+    feedback.value = lastTag.feedback || null
+    earnedTagTitle.value = lastTag.name
+    earnedTagNumber.value = lastTag.questNumber
+  } else {
+    // Fallback if no tags yet
+    earnedTagTitle.value = gameStore.currentQuest?.title || 'Quest'
+    earnedTagNumber.value = gameStore.currentWeek - 1
   }
-
-  // Trigger confetti after a short delay
-  setTimeout(() => {
-    showResults.value = true
-    triggerConfetti()
-  }, 300)
 })
 </script>
 
@@ -208,16 +227,6 @@ onMounted(() => {
   padding: 20px;
   position: relative;
   overflow: hidden;
-}
-
-.confetti-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1000;
 }
 
 .container {
@@ -236,13 +245,78 @@ onMounted(() => {
   margin-bottom: 40px;
 }
 
-.medal {
-  font-size: 80px;
-  animation: bounce 1s ease infinite;
+.dogtag-display {
+  margin-bottom: 20px;
+}
+
+.mini-dogtag {
+  width: 160px;
+  height: 90px;
+  margin: 0 auto;
+  background: linear-gradient(145deg, #b8b8b8 0%, #8a8a8a 30%, #a0a0a0 50%, #7a7a7a 70%, #909090 100%);
+  border-radius: 10px 10px 20px 20px;
+  position: relative;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #666;
+  transform: rotate(-5deg);
+  animation: tagFloat 3s ease-in-out infinite;
+}
+
+@keyframes tagFloat {
+  0%, 100% {
+    transform: rotate(-5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-5deg) translateY(-8px);
+  }
+}
+
+.mini-dogtag .tag-hole {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #000;
+  border-radius: 50%;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+  border: 1px solid #555;
+}
+
+.mini-dogtag .tag-content {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+}
+
+.mini-dogtag .tag-number {
+  display: block;
+  font-size: 11px;
+  color: #555;
+  font-weight: 700;
+}
+
+.mini-dogtag .tag-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  padding: 4px 8px;
+  line-height: 1.2;
 }
 
 .success-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
   color: #4267B2;
   margin: 16px 0 0 0;
@@ -326,31 +400,6 @@ onMounted(() => {
   font-size: 48px;
   font-weight: 900;
   color: #4267B2;
-}
-
-.badge-award {
-  text-align: center;
-  padding: 32px;
-  background: rgba(67, 103, 178, 0.05);
-  border-radius: 16px;
-  margin-bottom: 24px;
-}
-
-.badge-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-}
-
-.badge-name {
-  font-size: 24px;
-  font-weight: 900;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.badge-subtitle {
-  font-size: 14px;
-  color: #888;
 }
 
 .streak-section {
@@ -529,15 +578,6 @@ onMounted(() => {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
   }
 }
 </style>
