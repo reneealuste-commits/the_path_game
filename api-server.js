@@ -2,7 +2,6 @@ import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
 import fs from 'fs'
-import { SpeechClient } from '@google-cloud/speech'
 
 const app = express()
 const upload = multer({ dest: 'uploads/' })
@@ -10,52 +9,10 @@ const upload = multer({ dest: 'uploads/' })
 app.use(cors())
 app.use(express.json())
 
-// Initialize Google Cloud Speech client
-// Requires GOOGLE_APPLICATION_CREDENTIALS environment variable
+// Speech-to-Text has been removed to reduce disk usage
+// Using fallback mode for instant responses
 let speechClient = null
-const hasGoogleCredentials = !!process.env.GOOGLE_APPLICATION_CREDENTIALS
-
-if (hasGoogleCredentials) {
-  try {
-    speechClient = new SpeechClient()
-    console.log('✓ Google Cloud Speech-to-Text initialized')
-  } catch (error) {
-    console.warn('⚠ Google Cloud Speech-to-Text failed to initialize')
-    speechClient = null
-  }
-} else {
-  console.log('⚡ Fast mode: No Google credentials, using instant fallback')
-}
-
-// Transcribe audio using Google Cloud Speech-to-Text
-async function transcribeAudio(audioPath) {
-  if (!speechClient) {
-    throw new Error('Speech-to-Text not configured')
-  }
-
-  const audioBytes = fs.readFileSync(audioPath).toString('base64')
-
-  const request = {
-    config: {
-      encoding: 'WEBM_OPUS',
-      sampleRateHertz: 48000,
-      languageCode: 'en-US',
-      model: 'latest_long', // Use latest model for best accuracy
-      enableAutomaticPunctuation: true,
-      useEnhanced: true,
-    },
-    audio: {
-      content: audioBytes,
-    },
-  }
-
-  const [response] = await speechClient.recognize(request)
-  const transcription = response.results
-    .map(result => result.alternatives[0].transcript)
-    .join(' ')
-
-  return transcription
-}
+console.log('⚡ Fast mode: Using instant fallback (Speech-to-Text removed)')
 
 // Analyze transcription and generate feedback using AI-like logic
 function analyzeMissionDebrief(transcription, questTitle) {
@@ -170,26 +127,14 @@ app.post('/api/evaluate', upload.single('audio'), async (req, res) => {
     let transcription = ''
     let usedFallback = true
 
-    // First, try to use browser transcription if provided
+    // Use browser transcription if provided
     if (browserTranscription.trim()) {
       transcription = browserTranscription.trim()
       usedFallback = false
       console.log('Using browser transcription:', transcription)
     }
-    // Otherwise try Google transcription if we have a working client
-    else if (speechClient && audioFile) {
-      try {
-        console.log('Transcribing audio with Google Cloud Speech-to-Text...')
-        transcription = await transcribeAudio(audioFile)
-        console.log('Transcription:', transcription)
-        usedFallback = false
-      } catch (error) {
-        console.error('Transcription error:', error.message)
-      }
-    }
-
-    // Fallback: Use dummy transcription (instant response)
-    if (usedFallback || !transcription) {
+    // Otherwise use fallback transcription (instant response)
+    else {
       transcription = "I practiced detachment today in a stressful meeting. When the client started criticizing our work, I felt defensive at first. But then I stepped back mentally, like I was watching from above. I observed the situation objectively. I realized the client had valid concerns. I was able to respond calmly and we found a solution together."
       console.log('Using fallback transcription')
     }
@@ -237,12 +182,5 @@ const PORT = process.env.API_PORT || 3001
 
 app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`)
-  console.log(`Speech-to-Text: ${speechClient ? 'ENABLED' : 'DISABLED (fallback mode)'}`)
-  console.log('')
-  console.log('To enable real audio transcription:')
-  console.log('1. Create a Google Cloud project at https://console.cloud.google.com')
-  console.log('2. Enable Speech-to-Text API')
-  console.log('3. Create a service account and download JSON key')
-  console.log('4. Set environment variable: GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json')
-  console.log('5. Restart the server')
+  console.log(`Speech-to-Text: DISABLED (using fallback mode to save disk space)`)
 })
