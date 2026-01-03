@@ -152,7 +152,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   // Complete daily quest
-  const completeQuest = async (audioBlob, evaluation) => {
+  const completeQuest = async (audioBlob, evaluation, feedback = null) => {
     // Save recording
     currentRecording.value = audioBlob
 
@@ -166,7 +166,8 @@ export const useGameStore = defineStore('game', () => {
       day: currentDay.value,
       week: currentWeek.value,
       earnedAt: Date.now(),
-      evaluation
+      evaluation,
+      feedback
     }
     medals.value.push(medal)
     totalMedals.value += 1

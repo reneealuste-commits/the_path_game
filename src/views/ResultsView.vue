@@ -53,6 +53,35 @@
           </div>
         </div>
 
+        <!-- Feedback Section -->
+        <div v-if="feedback" class="feedback-section">
+          <h3 class="section-title">Mission Feedback</h3>
+
+          <div class="feedback-card success-feedback">
+            <div class="feedback-header">
+              <span class="feedback-icon">✓</span>
+              <h4 class="feedback-title">What You Did Well</h4>
+            </div>
+            <ul class="feedback-list">
+              <li v-for="(item, index) in feedback.whatYouDidWell" :key="'well-' + index">
+                {{ item }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="feedback-card improve-feedback">
+            <div class="feedback-header">
+              <span class="feedback-icon">→</span>
+              <h4 class="feedback-title">Where To Improve</h4>
+            </div>
+            <ul class="feedback-list">
+              <li v-for="(item, index) in feedback.whereToImprove" :key="'improve-' + index">
+                {{ item }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <!-- Badge Award -->
         <div class="badge-award">
           <div class="badge-icon">🎖️</div>
@@ -108,6 +137,9 @@ const evaluation = ref({
   communication: 0,
   overall: 0
 })
+
+// Get feedback from last medal
+const feedback = ref(null)
 
 const getScoreColor = (score) => {
   if (score >= 90) return '#44ff44'
