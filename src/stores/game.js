@@ -21,7 +21,7 @@ Here's your tactical mantra: Relax. Look around. Make a call.
 That's it. Detach from your emotions. Observe the situation objectively. Then execute.
 
 Now get out there and practice this. Good.`,
-    videoUrl: 'https://www.youtube.com/shorts/6Rv4CZszLaM', // Jocko on detachment
+    videoUrl: 'https://www.youtube.com/watch?v=fgyCMAjlJQo', // Jocko on detachment
     duration: 7 // days
   },
   // Future weeks will be added here
