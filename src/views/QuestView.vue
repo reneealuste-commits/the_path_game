@@ -270,6 +270,10 @@ const goToLeaderboard = () => {
   router.push('/leaderboard')
 }
 
+const goToSkillTags = () => {
+  router.push('/skilltags')
+}
+
 const handleLogout = async () => {
   await authStore.logout()
   router.push('/login')
@@ -877,6 +881,19 @@ onMounted(() => {
   font-size: 24px;
   font-weight: 900;
   color: #4267B2;
+}
+
+.stat.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 12px;
+  border-radius: 12px;
+  margin: -12px;
+}
+
+.stat.clickable:hover {
+  background: rgba(66, 103, 178, 0.2);
+  transform: scale(1.05);
 }
 
 @keyframes fadeIn {
