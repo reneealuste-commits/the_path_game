@@ -260,6 +260,17 @@ onMounted(() => {
   if (gameStore.checkStreakIntegrity()) {
     router.push('/mission-failed')
   }
+
+  // Load voices for speech synthesis
+  if ('speechSynthesis' in window) {
+    // Chrome loads voices asynchronously
+    window.speechSynthesis.onvoiceschanged = () => {
+      const voices = window.speechSynthesis.getVoices()
+      console.log('Available voices:', voices.map(v => v.name))
+    }
+    // Trigger voice loading
+    window.speechSynthesis.getVoices()
+  }
 })
 
 onUnmounted(() => {
@@ -438,6 +449,44 @@ onUnmounted(() => {
   line-height: 1.8;
   color: #ccc;
   margin: 0;
+}
+
+.video-option {
+  margin-top: 32px;
+  text-align: center;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-video {
+  display: inline-block;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-decoration: none;
+  user-select: none;
+}
+
+.btn-video:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 0, 0, 0.4);
+}
+
+.video-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
 }
 
 .mission-section {
