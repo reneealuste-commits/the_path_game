@@ -153,10 +153,10 @@ onMounted(() => {
 .streak-badge {
   font-size: 18px;
   font-weight: 700;
-  background: rgba(255, 215, 0, 0.2);
+  background: rgba(67, 103, 178, 0.2);
   padding: 8px 16px;
   border-radius: 20px;
-  color: #ffd700;
+  color: #4267B2;
 }
 
 .container {
@@ -305,8 +305,8 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  color: #000;
+  background: #4267B2;
+  color: #fff;
 }
 
 .btn-large {
@@ -316,7 +316,8 @@ onMounted(() => {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(66, 103, 178, 0.4);
+  background: #3B5998;
 }
 
 .btn-primary:disabled {
@@ -359,7 +360,7 @@ onMounted(() => {
 .stat-value {
   font-size: 24px;
   font-weight: 900;
-  color: #ffd700;
+  color: #4267B2;
 }
 
 @keyframes fadeIn {
