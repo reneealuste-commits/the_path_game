@@ -240,6 +240,7 @@ const submitDebrief = async () => {
     // Send audio to backend for AI evaluation
     const formData = new FormData()
     formData.append('audio', recordedBlob, 'debrief.webm')
+    formData.append('questTitle', gameStore.currentQuest.title)
 
     const response = await fetch('/api/evaluate', {
       method: 'POST',
