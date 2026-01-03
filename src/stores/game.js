@@ -38,7 +38,7 @@ A humble leader asks questions. They seek input from their team. They say "I don
 That takes courage. That takes strength. That's real leadership.
 
 Get out there and practice humility. Good.`,
-    videoUrl: 'https://www.youtube.com/watch?v=ljqra3BcqWM',
+    videoUrl: 'https://www.youtube.com/watch?v=RkT0BxTz3uU',
     duration: 1
   },
   week3: {
