@@ -24,43 +24,27 @@
         <div class="phase-badge">{{ gameStore.currentQuest.phase }}</div>
         <h1 class="quest-title">{{ gameStore.currentQuest.title }}</h1>
 
-        <!-- Audio Player -->
-        <div class="audio-section">
-          <div class="audio-player" :class="{ playing: isPlaying }">
-            <button
-              @click="toggleAudio"
-              class="play-button"
-              :disabled="audioLoading"
-            >
-              <span v-if="!hasStartedAudio">▶ START LESSON</span>
-              <span v-else-if="isPlaying">⏸ PAUSE</span>
-              <span v-else>▶ RESUME</span>
-            </button>
-
-            <div v-if="hasStartedAudio" class="progress-bar">
-              <div class="progress-fill" :style="{ width: audioProgress + '%' }"></div>
-            </div>
-          </div>
-
-          <div v-if="hasStartedAudio" class="lesson-text">
+        <!-- Lesson Content -->
+        <div class="lesson-section">
+          <div class="lesson-text-content">
             <p>{{ gameStore.currentQuest.description }}</p>
           </div>
         </div>
 
-        <!-- Watch Jocko Video Option -->
-        <div v-if="hasStartedAudio" class="video-option">
+        <!-- Watch Jocko Video -->
+        <div class="video-option">
           <a
             :href="gameStore.currentQuest.videoUrl"
             target="_blank"
             class="btn btn-video"
           >
-            📺 WATCH JOCKO ON YOUTUBE
+            📺 WATCH JOCKO'S LESSON
           </a>
-          <p class="video-note">Prefer to hear the real Jocko? Watch his lesson on detachment.</p>
+          <p class="video-note">Watch Jocko explain detachment on YouTube</p>
         </div>
 
         <!-- Mission Brief -->
-        <div v-if="audioCompleted" class="mission-section">
+        <div class="mission-section">
           <h3 class="mission-title">YOUR MISSION</h3>
           <div class="mission-card">
             <p>{{ gameStore.currentQuest.mission }}</p>
@@ -71,7 +55,7 @@
             class="btn btn-primary btn-large"
             :disabled="gameStore.hasCompletedToday"
           >
-            <span v-if="!gameStore.hasCompletedToday">COMPLETE MISSION</span>
+            <span v-if="!gameStore.hasCompletedToday">🎯 BEGIN MISSION</span>
             <span v-else>✓ COMPLETED TODAY</span>
           </button>
 
