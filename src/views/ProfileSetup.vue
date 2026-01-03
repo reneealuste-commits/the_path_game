@@ -61,7 +61,7 @@ const handleSubmit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: #000000;
   padding: 20px;
 }
 
@@ -81,7 +81,7 @@ const handleSubmit = () => {
   letter-spacing: 4px;
   color: #fff;
   margin: 0;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 20px rgba(66, 103, 178, 0.3);
 }
 
 .subtitle {
@@ -108,7 +108,7 @@ const handleSubmit = () => {
 .quote {
   font-size: 18px;
   font-style: italic;
-  color: #ffd700;
+  color: #4267B2;
   line-height: 1.6;
   margin-bottom: 12px;
 }
