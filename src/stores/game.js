@@ -112,7 +112,7 @@ Hesitation kills. Waiting for perfect clarity kills. Paralysis by analysis kills
 You can adjust as you go. You can adapt. But you have to move. You have to take action.
 
 Default. Aggressive. Good.`,
-    videoUrl: 'https://www.youtube.com/watch?v=0diM3vCHZJQ',
+    videoUrl: 'https://www.youtube.com/watch?v=_SSS7Jl9o6Q',
     duration: 1
   },
   week7: {
