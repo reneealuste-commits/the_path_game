@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import restart from 'vite-plugin-restart'
 
 export default defineConfig({
   root: './',
@@ -23,7 +22,6 @@ export default defineConfig({
     sourcemap: true
   },
   plugins: [
-    vue(),
-    restart({ restart: ['public/**'] })
+    vue()
   ]
 })
