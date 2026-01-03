@@ -108,12 +108,14 @@ const isPlaying = ref(false)
 const isSubmitting = ref(false)
 const permissionError = ref(false)
 const errorMessage = ref('')
+const transcription = ref('')
 
 let recordingInterval = null
 let mediaRecorder = null
 let audioChunks = []
 let recordedBlob = null
 let audioElement = null
+let speechRecognition = null
 
 const formattedTime = computed(() => {
   return recordingDuration.value.toString().padStart(2, '0')
@@ -149,6 +151,7 @@ const startRecording = async () => {
     // Clear any previous errors
     permissionError.value = false
     errorMessage.value = ''
+    transcription.value = ''
 
     // Check permission first
     const permissionState = await checkMicrophonePermission()
@@ -177,6 +180,9 @@ const startRecording = async () => {
       stream.getTracks().forEach(track => track.stop())
     }
 
+    // Start speech recognition for real-time transcription
+    startSpeechRecognition()
+
     mediaRecorder.start()
     isRecording.value = true
     recordingDuration.value = 0
@@ -203,6 +209,60 @@ const startRecording = async () => {
     } else {
       errorMessage.value = 'Could not access microphone. Please check your browser permissions and try again.'
     }
+  }
+}
+
+const startSpeechRecognition = () => {
+  // Check if browser supports speech recognition
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  if (!SpeechRecognition) {
+    console.log('Speech recognition not supported, will use server-side transcription')
+    return
+  }
+
+  try {
+    speechRecognition = new SpeechRecognition()
+    speechRecognition.continuous = true
+    speechRecognition.interimResults = true
+    speechRecognition.lang = 'en-US'
+
+    let finalTranscript = ''
+
+    speechRecognition.onresult = (event) => {
+      let interimTranscript = ''
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' '
+        } else {
+          interimTranscript += transcript
+        }
+      }
+
+      transcription.value = finalTranscript + interimTranscript
+    }
+
+    speechRecognition.onerror = (event) => {
+      console.log('Speech recognition error:', event.error)
+      // Don't stop recording on speech recognition error
+    }
+
+    speechRecognition.onend = () => {
+      // If still recording, restart recognition (it auto-stops after silence)
+      if (isRecording.value && speechRecognition) {
+        try {
+          speechRecognition.start()
+        } catch (e) {
+          // Ignore errors from restarting
+        }
+      }
+    }
+
+    speechRecognition.start()
+    console.log('Speech recognition started')
+  } catch (error) {
+    console.log('Could not start speech recognition:', error)
   }
 }
 
