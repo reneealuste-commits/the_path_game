@@ -271,6 +271,12 @@ const stopRecording = () => {
     mediaRecorder.stop()
   }
 
+  // Stop speech recognition
+  if (speechRecognition) {
+    speechRecognition.stop()
+    speechRecognition = null
+  }
+
   isRecording.value = false
 
   if (recordingInterval) {
@@ -316,6 +322,7 @@ const resetRecording = () => {
   recordedBlob = null
   audioChunks = []
   isPlaying.value = false
+  transcription.value = ''
 }
 
 const submitDebrief = async () => {
@@ -324,10 +331,14 @@ const submitDebrief = async () => {
   isSubmitting.value = true
 
   try {
-    // Send audio to backend for AI evaluation
+    // Send audio and transcription to backend for AI evaluation
     const formData = new FormData()
     formData.append('audio', recordedBlob, 'debrief.webm')
     formData.append('questTitle', gameStore.currentQuest.title)
+    // Send browser transcription if available
+    if (transcription.value.trim()) {
+      formData.append('transcription', transcription.value.trim())
+    }
 
     const response = await fetch('/api/evaluate', {
       method: 'POST',
