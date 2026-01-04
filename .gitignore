@@ -1,2 +1,5 @@
 uploads/
 STACK.md
+node_modules/
+dist/
+.env
